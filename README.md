@@ -41,7 +41,7 @@ The software was tested and validated using real experimental data, confirming i
 Clone the repository and navigate to the project directory:
 
 ```bash
-git clone https://github.com/SofiaDmytrenko/GUI-STM-STS
+git clone https://github.com/SofiaDmytrenko/GUI-STM-STS.git
 ```
 ``` bash
 cd GUI-STM-STS
