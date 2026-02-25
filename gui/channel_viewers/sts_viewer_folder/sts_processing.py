@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class STSPlotter:
     def __init__(self, viewer):
         self.viewer = viewer
@@ -36,8 +37,9 @@ class STSPlotter:
         if average:
             if len(indices) < 2:
                 QMessageBox.warning(
-                    self.viewer, "Invalid Selection",
-                    "Please select two or more curves."
+                    self.viewer,
+                    "Invalid Selection",
+                    "Please select two or more curves.",
                 )
                 return
 
@@ -73,7 +75,7 @@ class STSPlotter:
                 curve=all_curves[indices[0]],
                 y_new=avg_y,
                 label_prefix=None,
-                origin="average"
+                origin="average",
             )
             new_entry["label"] = avg_label
 
@@ -101,9 +103,14 @@ class STSPlotter:
             if 0 <= i < len(all_curves):
                 curve_entry = all_curves[i]
                 mask = curve_entry.get(
-                    "mask", np.isfinite(curve_entry["x"]) & np.isfinite(curve_entry["y"])
+                    "mask",
+                    np.isfinite(curve_entry["x"]) & np.isfinite(curve_entry["y"]),
                 )
-                self.ax.plot(curve_entry["x"][mask], curve_entry["y"][mask], label=curve_entry["label"])
+                self.ax.plot(
+                    curve_entry["x"][mask],
+                    curve_entry["y"][mask],
+                    label=curve_entry["label"],
+                )
         self.plotted_curves = indices.copy()
 
         # --- Axis labels ---
@@ -149,7 +156,7 @@ class STSOperations:
             "label": label,
             "origin": origin,
             "parents": [],
-            "mask": np.isfinite(x) & np.isfinite(y_new)
+            "mask": np.isfinite(x) & np.isfinite(y_new),
         }
         return entry
 
@@ -178,10 +185,7 @@ class STSOperations:
 
         # Build entry
         entry = STSOperations.create_new_entry(
-            curve,
-            y_new=y_norm,
-            label_prefix=label_prefix,
-            origin=f"normalize_{mode}"
+            curve, y_new=y_norm, label_prefix=label_prefix, origin=f"normalize_{mode}"
         )
         entry["parents"] = curve.get("parents", [])
         return entry
@@ -198,7 +202,7 @@ class STSOperations:
             origin="savgol",
             window_length=window_length,
             polyorder=polyorder,
-            mode="interp"
+            mode="interp",
         )
 
     @staticmethod
@@ -211,11 +215,13 @@ class STSOperations:
             filter_func=wiener,
             label_suffix="W",
             origin="wiener",
-            mysize=mysize
+            mysize=mysize,
         )
 
     @staticmethod
-    def apply_filter_to_curves(all_curves, indices, filter_func, label_suffix, origin, *args, **kwargs):
+    def apply_filter_to_curves(
+        all_curves, indices, filter_func, label_suffix, origin, *args, **kwargs
+    ):
         new_entries = []
 
         for idx in indices:
@@ -234,17 +240,16 @@ class STSOperations:
                 continue
 
             entry = STSOperations.create_new_entry(
-                curve=curve,
-                y_new=y_filt,
-                label_prefix=label_suffix,
-                origin=origin
+                curve=curve, y_new=y_filt, label_prefix=label_suffix, origin=origin
             )
             entry["parents"] = [idx]
             new_entries.append(entry)
         return new_entries
 
     @staticmethod
-    def compute_derivative(all_curves, indices, amp=None, fmod=None, tau=None, use_lockin=False):
+    def compute_derivative(
+        all_curves, indices, amp=None, fmod=None, tau=None, use_lockin=False
+    ):
         new_entries = []
 
         for idx in indices:
@@ -259,7 +264,11 @@ class STSOperations:
                 continue  # too short for differentiation
 
             # Compute derivative
-            dy_dx = STSOperations.lockin_derivative(x, y, amp, fmod, tau) if use_lockin else np.gradient(y, x)
+            dy_dx = (
+                STSOperations.lockin_derivative(x, y, amp, fmod, tau)
+                if use_lockin
+                else np.gradient(y, x)
+            )
 
             # Build a unique label
             parent_label = curve.get("label") or f"C{idx + 1}"
@@ -272,10 +281,7 @@ class STSOperations:
                 counter += 1
 
             entry = STSOperations.create_new_entry(
-                curve,
-                y_new=dy_dx,
-                label_prefix=None,
-                origin="derivative"
+                curve, y_new=dy_dx, label_prefix=None, origin="derivative"
             )
             entry["label"] = deriv_label
             new_entries.append(entry)
@@ -291,9 +297,13 @@ class STSOperations:
         # Check amplitude comparing to bias range and sampling step
         dx_min = np.min(np.diff(x))
         if amp > 0.5 * (x[-1] - x[0]):
-            logger.warning("Amplitude larger than bias range. Derivative may be inaccurate.")
+            logger.warning(
+                "Amplitude larger than bias range. Derivative may be inaccurate."
+            )
         elif amp > dx_min:
-            logger.info("Amplitude larger than sampling step – derivative will be smoothed.")
+            logger.info(
+                "Amplitude larger than sampling step – derivative will be smoothed."
+            )
 
         # Lock-in simulation
         Nph = 120
@@ -364,10 +374,7 @@ class STSOperations:
 
         # Build final entry
         entry = STSOperations.create_new_entry(
-            curve={"x": x, **curve_a},
-            y_new=y,
-            label_prefix=None,
-            origin=operation
+            curve={"x": x, **curve_a}, y_new=y, label_prefix=None, origin=operation
         )
         entry["label"] = label
         entry["parents"] = [idxA, idxB]

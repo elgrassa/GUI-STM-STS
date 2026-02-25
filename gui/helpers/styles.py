@@ -1,11 +1,26 @@
 from PyQt6.QtWidgets import (
-    QWidget, QHBoxLayout, QVBoxLayout, QSizePolicy, QTableWidget,
-    QHeaderView, QStyledItemDelegate, QAbstractItemView, QFrame,
-    QTableWidgetItem, QTextBrowser, QTextEdit, QLineEdit, QLabel,
-    QToolButton, QApplication, QGraphicsOpacityEffect, QPlainTextEdit
+    QWidget,
+    QHBoxLayout,
+    QVBoxLayout,
+    QSizePolicy,
+    QTableWidget,
+    QHeaderView,
+    QStyledItemDelegate,
+    QAbstractItemView,
+    QFrame,
+    QTableWidgetItem,
+    QTextBrowser,
+    QTextEdit,
+    QLineEdit,
+    QLabel,
+    QToolButton,
+    QApplication,
+    QGraphicsOpacityEffect,
+    QPlainTextEdit,
 )
 from PyQt6.QtCore import Qt, QTimer, QPoint, QPropertyAnimation
 from PyQt6.QtGui import QFont, QPen, QColor, QCursor
+
 
 class Style:
     # ---------------------- Stylesheets ----------------------
@@ -328,7 +343,9 @@ class Style:
         f.setBold(True)
         item.setFont(f)
         item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
-        item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+        item.setTextAlignment(
+            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
+        )
         return item
 
     @staticmethod
@@ -361,7 +378,9 @@ class Style:
     def load_button(load_button):
         load_button.setFixedHeight(50)
         load_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        load_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        load_button.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         load_button.setStyleSheet(Style.LOAD_BUTTON)
 
     # --- Toolbar ---
@@ -439,20 +458,26 @@ class Style:
     @staticmethod
     def style_peak_panel(peak_panel):
         peak_panel.setObjectName("peakPanel")
-        peak_panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        peak_panel.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding
+        )
         peak_panel.setStyleSheet(Style.PEAK_PANEL)
 
     @staticmethod
     def style_right_panel(right_panel):
         right_panel.setObjectName("rightPanel")
-        right_panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        right_panel.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding
+        )
         right_panel.setStyleSheet(Style.PANEL)
 
     @staticmethod
     def style_splitter(splitter):
         splitter.setHandleWidth(8)
         splitter.setStyleSheet(Style.SPLITTER)
-        splitter.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        splitter.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
 
     # --- Metadata Tab ---
     @staticmethod
@@ -460,7 +485,9 @@ class Style:
         search_box = QLineEdit()
         search_icon = QLabel("🔎")
         search_icon.setStyleSheet("QLabel { font-size: 16px; }")
-        search_icon.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        search_icon.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
 
         widget = QWidget()
         layout = QHBoxLayout(widget)
@@ -517,7 +544,9 @@ class Style:
         font.setBold(True)
         item.setFont(font)
         item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
-        item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+        item.setTextAlignment(
+            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
+        )
         return item
 
     @staticmethod
@@ -527,12 +556,13 @@ class Style:
         browser.setOpenLinks(False)
         browser.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
         browser.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextSelectableByMouse |
-            Qt.TextInteractionFlag.TextSelectableByKeyboard
+            Qt.TextInteractionFlag.TextSelectableByMouse
+            | Qt.TextInteractionFlag.TextSelectableByKeyboard
         )
         browser.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         browser.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        browser.setStyleSheet("""
+        browser.setStyleSheet(
+            """
             QTextBrowser {
                 padding: 2px;
                 border: none;
@@ -540,7 +570,8 @@ class Style:
                 selection-color: black;
                 text-decoration: none;
             }
-        """)
+        """
+        )
         browser.setPlainText(value_str)
         return browser
 
@@ -562,13 +593,15 @@ class Style:
         count_field = QLineEdit()
         count_field.setPlaceholderText("0")
         count_field.setFixedSize(32, 32)
-        count_field.setStyleSheet("""
+        count_field.setStyleSheet(
+            """
                 QLineEdit {
                     background: transparent;
                     border: none;
                     border-bottom: 1px solid #dbdbdb;
                 }
-            """)
+            """
+        )
         layout.addWidget(count_field)
 
         # Slash
@@ -651,7 +684,9 @@ class Style:
     def peak_coords_detected(peaks: list[float]) -> QPlainTextEdit:
         coords = QPlainTextEdit()
         coords.setReadOnly(True)
-        coords.setPlainText("\n".join(f"{i + 1})   {p:.4f}" for i, p in enumerate(peaks)))
+        coords.setPlainText(
+            "\n".join(f"{i + 1})   {p:.4f}" for i, p in enumerate(peaks))
+        )
         coords.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
         coords.setFrameStyle(QFrame.Shape.NoFrame)
 
@@ -659,17 +694,21 @@ class Style:
         coords.viewport().setCursor(Qt.CursorShape.ArrowCursor)
         coords.setViewportMargins(4, 4, 0, 0)
 
-        coords.setStyleSheet("""
+        coords.setStyleSheet(
+            """
             QPlainTextEdit {
                 border: 1px solid #cccccc;
                 border-radius: 4px;
             }
-        """)
+        """
+        )
 
         return coords
 
     @staticmethod
-    def peak_row_manual(index: int, value: float, is_first: bool) -> tuple[QHBoxLayout, QLineEdit]:
+    def peak_row_manual(
+        index: int, value: float, is_first: bool
+    ) -> tuple[QHBoxLayout, QLineEdit]:
         ROW_HEIGHT = 24
         LABEL_WIDTH = 20
 
@@ -685,7 +724,8 @@ class Style:
 
         le = QLineEdit(f"{value:.4f}")
         le.setFixedHeight(ROW_HEIGHT)
-        le.setStyleSheet("""
+        le.setStyleSheet(
+            """
             QLineEdit {
                 border: 1px solid #cccccc;
                 border-radius: 4px;
@@ -695,25 +735,27 @@ class Style:
             QLineEdit:focus {
                 border: 1px solid #999999;
             }
-        """)
+        """
+        )
 
         row.addWidget(lbl)
         row.addWidget(le)
 
         return row, le
 
+
 # ------------------------- Helpers -------------------------
 class Utils:
     # --- Metadata utils ---
     @staticmethod
     def compute_textedit_height(
-            browser: QTextEdit,
-            column_width: int,
-            *,
-            min_height=24,
-            max_height=300,
-            overhead=16,
-            document_margin=4
+        browser: QTextEdit,
+        column_width: int,
+        *,
+        min_height=24,
+        max_height=300,
+        overhead=16,
+        document_margin=4,
     ) -> int:
         doc = browser.document()
         doc.setDocumentMargin(document_margin)
@@ -725,8 +767,9 @@ class Utils:
         return max(min_height, min(max_height, height))
 
     @staticmethod
-    def copy_text_with_feedback(parent: QWidget, text: str,
-                                timeout=600, fade_duration=200):
+    def copy_text_with_feedback(
+        parent: QWidget, text: str, timeout=600, fade_duration=200
+    ):
         if not text:
             return
 
@@ -742,15 +785,11 @@ class Utils:
 
         display_text = preview + ("…" if longer else "")
         Utils.show_temporary_message(
-            parent,
-            f'"{display_text}" copied to clipboard',
-            timeout,
-            fade_duration
+            parent, f'"{display_text}" copied to clipboard', timeout, fade_duration
         )
 
     @staticmethod
-    def show_temporary_message(parent: QWidget, text,
-                               timeout=600, fade_duration=200):
+    def show_temporary_message(parent: QWidget, text, timeout=600, fade_duration=200):
         label = QLabel(text, parent)
         label.setStyleSheet(Style.COPY_LABEL)
         label.adjustSize()
@@ -775,6 +814,7 @@ class Utils:
 
         QTimer.singleShot(timeout, start_fade)
 
+
 class CustomHeader(QHeaderView):
     def __init__(self, orientation, parent=None):
         super().__init__(orientation, parent)
@@ -789,6 +829,7 @@ class CustomHeader(QHeaderView):
             painter.setPen(pen)
             x = rect.right() - 2
             painter.drawLine(x, rect.top(), x, rect.bottom())
+
 
 class ConditionalDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
@@ -812,6 +853,7 @@ class ConditionalDelegate(QStyledItemDelegate):
         # Draw bottom border if not last row
         if row < row_count - 1:
             painter.drawLine(rect.bottomLeft(), rect.bottomRight())
+
 
 class BorderDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):

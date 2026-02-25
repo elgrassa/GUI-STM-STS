@@ -7,6 +7,14 @@ from pathlib import Path
 import pytest
 
 
+def _ensure_project_root_on_path() -> None:
+    # Keep tests importable in CI when pytest starts from nested test paths.
+    project_root = Path(__file__).resolve().parents[1]
+    project_root_str = str(project_root)
+    if project_root_str not in sys.path:
+        sys.path.insert(0, project_root_str)
+
+
 def _install_spym_stub() -> None:
     if "spym" in sys.modules:
         return
@@ -16,7 +24,9 @@ def _install_spym_stub() -> None:
         spym_stub = types.ModuleType("spym")
 
         def _missing_load(_path: str):
-            raise RuntimeError("spym.load stub was used without monkeypatching in test.")
+            raise RuntimeError(
+                "spym.load stub was used without monkeypatching in test."
+            )
 
         spym_stub.load = _missing_load
         sys.modules["spym"] = spym_stub
@@ -53,6 +63,7 @@ def _install_pyqt_stub() -> None:
         sys.modules["PyQt6.QtCore"] = qtcore_mod
 
 
+_ensure_project_root_on_path()
 _install_spym_stub()
 _install_pyqt_stub()
 

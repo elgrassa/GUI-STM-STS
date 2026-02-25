@@ -1,7 +1,13 @@
 from PyQt6.QtWidgets import (
-    QToolButton, QCheckBox, QMenu, QSizePolicy, QWidget, QVBoxLayout
+    QToolButton,
+    QCheckBox,
+    QMenu,
+    QSizePolicy,
+    QWidget,
+    QVBoxLayout,
 )
 from gui.helpers.styles import Style
+
 
 class STSToolbar(QWidget):
     def __init__(self, parent=None):
@@ -72,10 +78,7 @@ class STSToolbar(QWidget):
 
         # ---------------------- Tooltips ----------------------
         self.btn_save.setToolTip(
-            "<html>"
-            "Save chart image (.png) or<br>"
-            "export data (.csv)"
-            "</html>"
+            "<html>" "Save chart image (.png) or<br>" "export data (.csv)" "</html>"
         )
 
         self.btn_normalize.setToolTip(
@@ -138,7 +141,9 @@ class STSToolbar(QWidget):
         self.btn_update.setToolTip("Update chart, plot selected curves")
         self.btn_chk_all.setToolTip("Check all curves on the list")
         self.btn_hide.setToolTip("Clear chart, uncheck all selected curves")
-        self.btn_reset.setToolTip("Reset to original dataset, remove all modified curves")
+        self.btn_reset.setToolTip(
+            "Reset to original dataset, remove all modified curves"
+        )
 
     # ---------------------- Create menus ----------------------
     def create_menus(self):
@@ -149,7 +154,9 @@ class STSToolbar(QWidget):
 
         self.normalize_menu = QMenu(self)
         self.action_norm_IU = self.normalize_menu.addAction("🔨 Normalize by I/U")
-        self.action_norm_Imax = self.normalize_menu.addAction("🔧 Normalize by I\u2098\u2090\u2093")
+        self.action_norm_Imax = self.normalize_menu.addAction(
+            "🔧 Normalize by I\u2098\u2090\u2093"
+        )
         self.btn_normalize.setMenu(self.normalize_menu)
 
         self.filter_menu = QMenu(self)
@@ -177,12 +184,21 @@ class STSToolbar(QWidget):
     def create_layout(self):
         layout, self.toolbar_frame = Style.create_toolbar_frame()
         # Adding buttons to toolbar
-        for item in [self.btn_save, Style.create_pixel_divider(), self.btn_normalize,
-                     self.btn_filter, Style.create_pixel_divider(), self.btn_subtract,
-                     self.btn_divide, self.chk_swap_order, Style.create_pixel_divider(),
-                     self.btn_average, self.btn_derivative, Style.create_pixel_divider(),
-                     self.btn_fit
-                     ]:
+        for item in [
+            self.btn_save,
+            Style.create_pixel_divider(),
+            self.btn_normalize,
+            self.btn_filter,
+            Style.create_pixel_divider(),
+            self.btn_subtract,
+            self.btn_divide,
+            self.chk_swap_order,
+            Style.create_pixel_divider(),
+            self.btn_average,
+            self.btn_derivative,
+            Style.create_pixel_divider(),
+            self.btn_fit,
+        ]:
             layout.addWidget(item)
 
         main_layout = QVBoxLayout(self)
@@ -194,9 +210,8 @@ class STSToolbar(QWidget):
         main_layout.addStretch(1)
 
         # ---------------------- Menu styling ----------------------
+
     def style_menu(self):
-        menu_list = [self.save_menu,
-                     self.normalize_menu,
-                     self.filter_menu]
+        menu_list = [self.save_menu, self.normalize_menu, self.filter_menu]
         for menu in menu_list:
             Style.style_menu(menu)

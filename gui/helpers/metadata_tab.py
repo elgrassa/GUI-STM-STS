@@ -1,6 +1,11 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QMainWindow, QTableWidgetItem, QMenu,
-    QTextEdit, QTextBrowser
+    QWidget,
+    QVBoxLayout,
+    QMainWindow,
+    QTableWidgetItem,
+    QMenu,
+    QTextEdit,
+    QTextBrowser,
 )
 from PyQt6.QtCore import Qt, QTimer, QPoint
 from PyQt6.QtGui import QShortcut, QKeySequence, QTextCursor, QTextCharFormat, QColor
@@ -8,6 +13,7 @@ from gui.helpers.styles import Style, Utils
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class MetadataTab(QWidget):
     def __init__(self, channel_data, parent=None):
@@ -59,10 +65,14 @@ class MetadataTab(QWidget):
             empty_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.table.setItem(row, 2, empty_item)
 
-            QTimer.singleShot(0, lambda r=row, b=value_browser: self.adjust_row_height(r, b))
+            QTimer.singleShot(
+                0, lambda r=row, b=value_browser: self.adjust_row_height(r, b)
+            )
 
         self.table.horizontalHeader().sectionResized.connect(
-            lambda idx, old, new: QTimer.singleShot(10, self.recalculate_metadata_row_heights)
+            lambda idx, old, new: QTimer.singleShot(
+                10, self.recalculate_metadata_row_heights
+            )
         )
 
         QTimer.singleShot(30, self.recalculate_metadata_row_heights)
@@ -94,10 +104,7 @@ class MetadataTab(QWidget):
             val_text = val_widget.toPlainText() if val_widget else ""
 
             # Case-insensitive search
-            match = (
-                    query_lc in key_text.lower() or
-                    query_lc in val_text.lower()
-            )
+            match = query_lc in key_text.lower() or query_lc in val_text.lower()
 
             # Show or hide row
             self.table.setRowHidden(row, not match)
@@ -169,7 +176,14 @@ class MetadataTab(QWidget):
         layout = QVBoxLayout(central)
 
         # Search bar
-        search_widget, search_box, search_count_field, search_count_label, prev_btn, next_btn = Style.full_view_search()
+        (
+            search_widget,
+            search_box,
+            search_count_field,
+            search_count_label,
+            prev_btn,
+            next_btn,
+        ) = Style.full_view_search()
         layout.addWidget(search_widget)
 
         QShortcut(QKeySequence("Ctrl+F"), dlg, activated=lambda: search_box.setFocus())
@@ -186,7 +200,7 @@ class MetadataTab(QWidget):
         search_state = {
             "pattern": "",
             "positions": [],  # list of start offsets (match)
-            "index": 0  # current match index
+            "index": 0,  # current match index
         }
 
         def compute_all_matches(pattern: str):
@@ -234,9 +248,11 @@ class MetadataTab(QWidget):
             # Create a cursor that selects the found match
             cur = QTextCursor(doc)
             cur.setPosition(pos)
-            cur.movePosition(QTextCursor.MoveOperation.Right,
-                             QTextCursor.MoveMode.KeepAnchor,
-                             len(pattern))
+            cur.movePosition(
+                QTextCursor.MoveOperation.Right,
+                QTextCursor.MoveMode.KeepAnchor,
+                len(pattern),
+            )
             text_viewer.setTextCursor(cur)
 
             # Compute line number for the match start
@@ -265,13 +281,17 @@ class MetadataTab(QWidget):
         def find_next():
             if not search_state["positions"]:
                 return
-            search_state["index"] = (search_state["index"] + 1) % len(search_state["positions"])
+            search_state["index"] = (search_state["index"] + 1) % len(
+                search_state["positions"]
+            )
             jump_to_index(search_state["index"])
 
         def find_prev():
             if not search_state["positions"]:
                 return
-            search_state["index"] = (search_state["index"] - 1) % len(search_state["positions"])
+            search_state["index"] = (search_state["index"] - 1) % len(
+                search_state["positions"]
+            )
             jump_to_index(search_state["index"])
 
         # --- manual index entry ---
@@ -308,7 +328,12 @@ class MetadataTab(QWidget):
         next_btn.clicked.connect(find_next)
         prev_btn.clicked.connect(find_prev)
 
-        for key in [Qt.Key.Key_PageUp, Qt.Key.Key_PageDown, Qt.Key.Key_Up, Qt.Key.Key_Down]:
+        for key in [
+            Qt.Key.Key_PageUp,
+            Qt.Key.Key_PageDown,
+            Qt.Key.Key_Up,
+            Qt.Key.Key_Down,
+        ]:
             shortcut = QShortcut(QKeySequence(key), dlg)
             if key in [Qt.Key.Key_PageUp, Qt.Key.Key_Up]:
                 shortcut.activated.connect(find_prev)
@@ -329,10 +354,7 @@ class MetadataTab(QWidget):
 
     def adjust_row_height(self, row, browser):
         height = Utils.compute_textedit_height(
-            browser,
-            self.table.columnWidth(1),
-            max_height=300,
-            overhead=20
+            browser, self.table.columnWidth(1), max_height=300, overhead=20
         )
 
         text = browser.toPlainText()
@@ -368,7 +390,8 @@ class MetadataTab(QWidget):
 
         # Move long values (>4 lines) to the end
         long_value_keys = [
-            k for k in keys
+            k
+            for k in keys
             if isinstance(attrs[k], str) and len(attrs[k].splitlines()) > 4
         ]
         keys = [k for k in keys if k not in long_value_keys]

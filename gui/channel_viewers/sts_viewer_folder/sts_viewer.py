@@ -1,8 +1,23 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QListWidget, QListWidgetItem, QSplitter, QScrollArea, QFormLayout,
-    QFileDialog, QMessageBox, QLineEdit, QDialog, QDialogButtonBox,
-    QInputDialog, QTabWidget, QStyle, QStyleOptionViewItem
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QSplitter,
+    QScrollArea,
+    QFormLayout,
+    QFileDialog,
+    QMessageBox,
+    QLineEdit,
+    QDialog,
+    QDialogButtonBox,
+    QInputDialog,
+    QTabWidget,
+    QStyle,
+    QStyleOptionViewItem,
 )
 from PyQt6.QtGui import QRegularExpressionValidator, QCursor
 from PyQt6.QtCore import Qt, QRegularExpression
@@ -14,19 +29,30 @@ import csv
 import logging
 
 from gui.channel_viewers.sts_viewer_folder.sts_toolbar import STSToolbar
-from gui.channel_viewers.sts_viewer_folder.sts_processing import STSPlotter, STSOperations
+from gui.channel_viewers.sts_viewer_folder.sts_processing import (
+    STSPlotter,
+    STSOperations,
+)
 from gui.channel_viewers.sts_viewer_folder.fit_gauss import FitGauss
 from gui.helpers.metadata_tab import MetadataTab
 from gui.helpers.styles import Style
 
 logger = logging.getLogger(__name__)
 
+
 class STSViewer(QMainWindow):
-    def __init__(self, channel_data: dict, filename: str = None,
-                 current_channel: dict = None, parent=None):
+    def __init__(
+        self,
+        channel_data: dict,
+        filename: str = None,
+        current_channel: dict = None,
+        parent=None,
+    ):
         super().__init__(parent)
         self.channel_data = channel_data
-        self.filename = filename or channel_data.get("attrs", {}).get("filename", "Unknown")
+        self.filename = filename or channel_data.get("attrs", {}).get(
+            "filename", "Unknown"
+        )
         self.title = channel_data.get("title", "unknown")
         self.current_channel = current_channel
 
@@ -36,7 +62,9 @@ class STSViewer(QMainWindow):
 
         src_data = channel_data.get("data")
         self.original_data = src_data
-        self.modified_data = np.asarray(src_data, dtype=float) if src_data is not None else None
+        self.modified_data = (
+            np.asarray(src_data, dtype=float) if src_data is not None else None
+        )
 
         # Pre-populate raw curves
         if self.modified_data is not None and not self.all_curves:
@@ -46,10 +74,7 @@ class STSViewer(QMainWindow):
             x_scale = float(attrs.get("RHK_Xscale", 1) or 1)
 
             x_full = np.linspace(
-                x_offset,
-                x_offset + x_scale * (n_points - 1),
-                n_points,
-                dtype=float
+                x_offset, x_offset + x_scale * (n_points - 1), n_points, dtype=float
             )
 
             self.all_curves = []
@@ -64,13 +89,15 @@ class STSViewer(QMainWindow):
                 else:
                     label = f"C{i + 1}"
 
-                self.all_curves.append({
-                    "x": x_full,
-                    "y": y,
-                    "label": label,
-                    "origin": "raw",
-                    "mask": np.isfinite(x_full) & np.isfinite(y)
-                })
+                self.all_curves.append(
+                    {
+                        "x": x_full,
+                        "y": y,
+                        "label": label,
+                        "origin": "raw",
+                        "mask": np.isfinite(x_full) & np.isfinite(y),
+                    }
+                )
 
         self.setWindowTitle(f"STS Viewer - {os.path.basename(self.filename)}")
         self.resize(900, 600)
@@ -102,17 +129,25 @@ class STSViewer(QMainWindow):
         self.toolbar.action_savgol.triggered.connect(self.savgol_filter)
         self.toolbar.action_wiener.triggered.connect(self.wiener_filter)
         self.toolbar.btn_derivative.clicked.connect(self.calculate_derivative)
-        self.toolbar.btn_subtract.clicked.connect(lambda: self.curve_arithmetic("subtract"))
+        self.toolbar.btn_subtract.clicked.connect(
+            lambda: self.curve_arithmetic("subtract")
+        )
         self.toolbar.btn_divide.clicked.connect(lambda: self.curve_arithmetic("divide"))
-        self.toolbar.chk_swap_order.toggled.connect(lambda s: setattr(self, "reverse_order", s))
+        self.toolbar.chk_swap_order.toggled.connect(
+            lambda s: setattr(self, "reverse_order", s)
+        )
         self.toolbar.btn_fit.clicked.connect(self.fit_gauss)
         self.toolbar.btn_update.clicked.connect(
-            lambda: self.plotter.plot_curves(indices=self.get_selected_indices(), average=False)
+            lambda: self.plotter.plot_curves(
+                indices=self.get_selected_indices(), average=False
+            )
         )
         self.toolbar.btn_chk_all.clicked.connect(self.toggle_all_curves)
         self.toolbar.btn_hide.clicked.connect(self.hide_curves)
         self.toolbar.btn_average.clicked.connect(
-            lambda: self.plotter.plot_curves(indices=self.get_selected_indices(), average=True)
+            lambda: self.plotter.plot_curves(
+                indices=self.get_selected_indices(), average=True
+            )
         )
         self.toolbar.btn_reset.clicked.connect(self.reset_modifications)
 
@@ -156,8 +191,12 @@ class STSViewer(QMainWindow):
 
         # Checklist buttons
         btn_layout = QHBoxLayout()
-        for btn in [self.toolbar.btn_update, self.toolbar.btn_chk_all,
-                    self.toolbar.btn_hide, self.toolbar.btn_reset]:
+        for btn in [
+            self.toolbar.btn_update,
+            self.toolbar.btn_chk_all,
+            self.toolbar.btn_hide,
+            self.toolbar.btn_reset,
+        ]:
             Style.style_checklist_icon(btn)
             btn_layout.addWidget(btn)
         btn_layout.addStretch()
@@ -244,7 +283,9 @@ class STSViewer(QMainWindow):
         for idx, entry in enumerate(self.all_curves):
             base = entry.get("label") or f"C{idx + 1}"
             used_labels[base] = used_labels.get(base, -1) + 1
-            display = base if used_labels[base] == 0 else f"{base} ({used_labels[base]})"
+            display = (
+                base if used_labels[base] == 0 else f"{base} ({used_labels[base]})"
+            )
 
             item = QListWidgetItem(display)
             item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable)
@@ -281,7 +322,8 @@ class STSViewer(QMainWindow):
             return []
 
         return [
-            i for i in range(self.curve_list.count())
+            i
+            for i in range(self.curve_list.count())
             if self.curve_list.item(i).checkState() == Qt.CheckState.Checked
         ]
 
@@ -294,10 +336,7 @@ class STSViewer(QMainWindow):
             for i in range(self.curve_list.count())
         )
 
-        new_state = (
-            Qt.CheckState.Unchecked if all_checked
-            else Qt.CheckState.Checked
-        )
+        new_state = Qt.CheckState.Unchecked if all_checked else Qt.CheckState.Checked
 
         self.curve_list.blockSignals(True)
         for i in range(self.curve_list.count()):
@@ -314,8 +353,7 @@ class STSViewer(QMainWindow):
         option.features = QStyleOptionViewItem.ViewItemFeature.HasCheckIndicator
 
         check_rect = self.curve_list.style().subElementRect(
-            QStyle.SubElement.SE_ItemViewItemCheckIndicator,
-            option
+            QStyle.SubElement.SE_ItemViewItemCheckIndicator, option
         )
 
         if not check_rect.contains(pos):
@@ -419,7 +457,9 @@ class STSViewer(QMainWindow):
             try:
                 os.remove(file_path)
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Cannot overwrite existing file:\n{e}")
+                QMessageBox.critical(
+                    self, "Error", f"Cannot overwrite existing file:\n{e}"
+                )
                 return
 
         # Metadata source
@@ -432,7 +472,7 @@ class STSViewer(QMainWindow):
         # Cell values sanitization for CSV format
         def sanitize_metadata_value(value):
             s = str(value).replace("\n", " ").replace("\r", " ").replace("\t", " ")
-            return f'{s}'
+            return f"{s}"
 
         # Collect all Y curves and labels
         y_arrays = []
@@ -442,14 +482,18 @@ class STSViewer(QMainWindow):
             y = np.array(entry.get("y", []))
             # Pad to match X-axis length
             if len(y) < n_points:
-                y = np.pad(y, (0, n_points - len(y)), mode="constant", constant_values=np.nan)
+                y = np.pad(
+                    y, (0, n_points - len(y)), mode="constant", constant_values=np.nan
+                )
             elif len(y) > n_points:
                 y = y[:n_points]
             y_arrays.append(y)
             short = entry.get("label") or "Unnamed"
             labels.append(sanitize_metadata_value(short))
         try:
-            with open(file_path, "w", newline='', encoding="utf-8", errors="replace") as f:
+            with open(
+                file_path, "w", newline="", encoding="utf-8", errors="replace"
+            ) as f:
                 writer = csv.writer(f)
 
                 # Metadata rows
@@ -457,10 +501,20 @@ class STSViewer(QMainWindow):
                 metadata_values = ["Value"]
 
                 preferred_order = [
-                    "filename", "RHK_Label", "long_name", "RHK_SessionText", "RHK_Bias",
-                    "RHK_Ysize", "RHK_Xsize", "RHK_Xlabel",
-                    "RHK_Ylabel", "RHK_Xscale", "RHK_Yscale",
-                    "RHK_Xunits", "RHK_Yunits", "RHK_Zunits"
+                    "filename",
+                    "RHK_Label",
+                    "long_name",
+                    "RHK_SessionText",
+                    "RHK_Bias",
+                    "RHK_Ysize",
+                    "RHK_Xsize",
+                    "RHK_Xlabel",
+                    "RHK_Ylabel",
+                    "RHK_Xscale",
+                    "RHK_Yscale",
+                    "RHK_Xunits",
+                    "RHK_Yunits",
+                    "RHK_Zunits",
                 ]
 
                 # Add preferred keys first if exist
@@ -503,29 +557,35 @@ class STSViewer(QMainWindow):
     def normalize(self, mode="IU"):
         indices = self.get_selected_indices()
         if not indices:
-            QMessageBox.warning(self, "No Selection", "Please select at least one curve.")
+            QMessageBox.warning(
+                self, "No Selection", "Please select at least one curve."
+            )
             return
 
         # Validate current channel
         if not self.current_channel or not isinstance(self.current_channel, dict):
             QMessageBox.information(
-                self, "Normalization Skipped",
-                "No Current channel found. Normalization cannot be performed."
+                self,
+                "Normalization Skipped",
+                "No Current channel found. Normalization cannot be performed.",
             )
             return
 
         current_data = self.current_channel.get("data")
         if current_data is None:
             QMessageBox.information(
-                self, "Normalization Skipped",
-                "No Current channel found. Normalization cannot be performed."
+                self,
+                "Normalization Skipped",
+                "No Current channel found. Normalization cannot be performed.",
             )
             return
 
         # Get bias axis
         bias = STSOperations.get_bias_axis(self.channel_data)
         if bias.size == 0:
-            QMessageBox.warning(self, "No Bias Data", "Bias axis could not be determined.")
+            QMessageBox.warning(
+                self, "No Bias Data", "Bias axis could not be determined."
+            )
             return
 
         # Process selected curves
@@ -544,13 +604,16 @@ class STSViewer(QMainWindow):
                 continue
 
             current_column = current_data[:, parent_idx]
-            entry = STSOperations.create_normalized_entry(curve, current_column, bias, mode)
+            entry = STSOperations.create_normalized_entry(
+                curve, current_column, bias, mode
+            )
             if entry is not None:
                 new_entries.append(entry)
 
         if not new_entries:
-            QMessageBox.information(self, "No Valid Curves",
-                                    "No valid curves found for normalization.")
+            QMessageBox.information(
+                self, "No Valid Curves", "No valid curves found for normalization."
+            )
             return
 
         # Add new curves
@@ -566,28 +629,42 @@ class STSViewer(QMainWindow):
     def savgol_filter(self):
         indices = self.get_selected_indices()
         if not indices:
-            QMessageBox.warning(self, "No Selection", "Please check at least one curve to filter.")
+            QMessageBox.warning(
+                self, "No Selection", "Please check at least one curve to filter."
+            )
             return
 
         window_length, ok1 = QInputDialog.getInt(
-            self, "Savitzky–Golay Filter",
-            "Window length - odd number [3, 301]:", 21, 3, 301, 2
+            self,
+            "Savitzky–Golay Filter",
+            "Window length - odd number [3, 301]:",
+            21,
+            3,
+            301,
+            2,
         )
         if not ok1 or window_length % 2 == 0:
             QMessageBox.warning(self, "Invalid Value", "Window length must be odd.")
             return
 
         polyorder, ok2 = QInputDialog.getInt(
-            self, "Savitzky–Golay Filter",
-            "Polynomial order - [1, 10]:", 3, 1, 10, 1
+            self, "Savitzky–Golay Filter", "Polynomial order - [1, 10]:", 3, 1, 10, 1
         )
         if not ok2 or polyorder >= window_length:
-            QMessageBox.warning(self, "Invalid Value", "Polynomial order must be smaller than window length.")
+            QMessageBox.warning(
+                self,
+                "Invalid Value",
+                "Polynomial order must be smaller than window length.",
+            )
             return
 
-        new_entries = STSOperations.savgol_filter(self.all_curves, indices, window_length, polyorder)
+        new_entries = STSOperations.savgol_filter(
+            self.all_curves, indices, window_length, polyorder
+        )
         if not new_entries:
-            QMessageBox.warning(self, "No Valid Curves", "No valid curves found for filtering.")
+            QMessageBox.warning(
+                self, "No Valid Curves", "No valid curves found for filtering."
+            )
             return
 
         start_idx = len(self.all_curves)
@@ -600,20 +677,22 @@ class STSViewer(QMainWindow):
     def wiener_filter(self):
         indices = self.get_selected_indices()
         if not indices:
-            QMessageBox.warning(self, "No Selection", "Please check at least one curve to filter.")
+            QMessageBox.warning(
+                self, "No Selection", "Please check at least one curve to filter."
+            )
             return
 
         mysize, ok = QInputDialog.getInt(
-            self, "Wiener Filter",
-            "Neighborhood size:", 9, 1, 101, 1
+            self, "Wiener Filter", "Neighborhood size:", 9, 1, 101, 1
         )
         if not ok:
             return
 
-
         new_entries = STSOperations.wiener_filter(self.all_curves, indices, mysize)
         if not new_entries:
-            QMessageBox.warning(self, "No Valid Curves", "No valid curves found for filtering.")
+            QMessageBox.warning(
+                self, "No Valid Curves", "No valid curves found for filtering."
+            )
             return
 
         start_idx = len(self.all_curves)
@@ -627,7 +706,9 @@ class STSViewer(QMainWindow):
     def calculate_derivative(self):
         indices = self.get_selected_indices()
         if not indices:
-            QMessageBox.warning(self, "No Selection", "Please select at least one curve.")
+            QMessageBox.warning(
+                self, "No Selection", "Please select at least one curve."
+            )
             return
 
         amp, fmod, tau, ok = self.ask_lockin_parameters()
@@ -636,10 +717,14 @@ class STSViewer(QMainWindow):
 
         use_lockin = amp is not None
 
-        new_entries = STSOperations.compute_derivative(self.all_curves, indices, amp, fmod, tau, use_lockin)
+        new_entries = STSOperations.compute_derivative(
+            self.all_curves, indices, amp, fmod, tau, use_lockin
+        )
 
         if not new_entries:
-            QMessageBox.information(self, "No Result", "No valid curves for differentiation.")
+            QMessageBox.information(
+                self, "No Result", "No valid curves for differentiation."
+            )
             return
 
         start_idx = len(self.all_curves)
@@ -663,8 +748,9 @@ class STSViewer(QMainWindow):
         layout.addRow("f_mod [Hz] =", fmod_field)
         layout.addRow("τ [s]      =", tau_field)
 
-        btns = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok |
-                                QDialogButtonBox.StandardButton.Cancel)
+        btns = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
         layout.addWidget(btns)
 
         btns.accepted.connect(dlg.accept)
@@ -683,7 +769,9 @@ class STSViewer(QMainWindow):
     def curve_arithmetic(self, operation):
         indices = self.get_selected_indices()
         if len(indices) != 2:
-            QMessageBox.warning(self, "Invalid Selection", "Please select exactly two curves.")
+            QMessageBox.warning(
+                self, "Invalid Selection", "Please select exactly two curves."
+            )
             return
 
         if not self.all_curves:
@@ -727,8 +815,15 @@ class STSViewer(QMainWindow):
             return
 
     def add_fitted_curve_to_checklist(
-            self, x, y, base_index, fit_result, fit_components,
-            r2_local=None, r2_global=None):
+        self,
+        x,
+        y,
+        base_index,
+        fit_result,
+        fit_components,
+        r2_local=None,
+        r2_global=None,
+    ):
 
         label = f"C{base_index + 1}-fitGauss"
 
@@ -747,7 +842,8 @@ class STSViewer(QMainWindow):
 
         # Handle duplicates
         existing = [
-            c for c in self.all_curves
+            c
+            for c in self.all_curves
             if c.get("origin") == "fit" and c.get("parents", []) == [base_index]
         ]
 
@@ -770,6 +866,7 @@ class STSViewer(QMainWindow):
 
         # Connect double-click
         if not getattr(self, "fit_doubleclick_connected", False):
+
             def handle_doubleclick(clicked_item):
                 data = clicked_item.data(Qt.ItemDataRole.UserRole)
                 if not data or not data.get("is_fit"):
@@ -789,7 +886,9 @@ class STSViewer(QMainWindow):
     # --- Reset all modifications ---
     def reset_modifications(self):
         if self.original_data is None:
-            QMessageBox.information(self, "No Data", "No original data available to reset.")
+            QMessageBox.information(
+                self, "No Data", "No original data available to reset."
+            )
             return
 
         # Restore original data
@@ -804,7 +903,9 @@ class STSViewer(QMainWindow):
         n_points, n_curves = self.modified_data.shape
         x_offset = float(attrs.get("RHK_Bias", 0) or 0)
         x_scale = float(attrs.get("RHK_Xscale", 1) or 1)
-        x_full = np.linspace(x_offset, x_offset + x_scale * (n_points - 1), n_points, dtype=float)
+        x_full = np.linspace(
+            x_offset, x_offset + x_scale * (n_points - 1), n_points, dtype=float
+        )
 
         self.all_curves = []
         for i in range(n_curves):
@@ -815,7 +916,7 @@ class STSViewer(QMainWindow):
                 curve={"x": x_full, "y": y, "label": f"C{i + 1}", "parents": [i]},
                 y_new=y,
                 label_prefix=None,
-                origin="raw"
+                origin="raw",
             )
             # For raw data, parents should point to itself
             entry["parents"] = [i]
@@ -858,8 +959,9 @@ class STSViewer(QMainWindow):
     def get_single_selected_curve(self):
         indices = self.get_selected_indices()
         if len(indices) != 1:
-            QMessageBox.warning(self, "Invalid Selection",
-                                "Please select exactly one curve.")
+            QMessageBox.warning(
+                self, "Invalid Selection", "Please select exactly one curve."
+            )
             return None
 
         idx = indices[0]
@@ -867,9 +969,10 @@ class STSViewer(QMainWindow):
         # Validation
         if not hasattr(self, "all_curves") or idx < 0 or idx >= len(self.all_curves):
             QMessageBox.critical(
-                self, "Index Error",
+                self,
+                "Index Error",
                 f"Selected curve #{idx + 1} does NOT exist.\n"
-                f"Available curves: 1–{len(self.all_curves)}."
+                f"Available curves: 1–{len(self.all_curves)}.",
             )
             return None
 
