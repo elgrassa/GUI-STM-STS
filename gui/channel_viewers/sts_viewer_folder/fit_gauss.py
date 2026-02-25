@@ -45,9 +45,7 @@ class FitGauss:
         x, y, label = self.prepare_curve(entry, bias_axis=bias, idx=idx)
 
         # Ensure curve is plotted
-        plotted_indices = [
-            it_idx for _, _, it_idx in getattr(self.viewer, "curves", [])
-        ]
+        plotted_indices = [it_idx for _, _, it_idx in getattr(self.viewer, "curves", [])]
         if idx not in plotted_indices:
             try:
                 self.viewer.plotter.plot_curves(indices=[idx], average=False)
@@ -101,9 +99,7 @@ class FitGauss:
 
     def on_peak_panel_ok(self, peaks, x, y, label, idx):
         # Perform fit
-        fit_x, fit_y, fit_result, components, r2_global, r2_local = self.perform_fit(
-            x, y, peaks
-        )
+        fit_x, fit_y, fit_result, components, r2_global, r2_local = self.perform_fit(x, y, peaks)
 
         # Prepare label for legend
         short_label = f"{label}-FitGauss"
@@ -231,9 +227,7 @@ class FitGauss:
         header = QLabel("| SELECT PEAKS")
         Style.style_title(header)
         text = QLabel(
-            f"- Left click = add peak,\n"
-            f"- Right click = undo last.\n\n"
-            f"Limit: 1-{max_peaks} peaks"
+            f"- Left click = add peak,\n- Right click = undo last.\n\nLimit: 1-{max_peaks} peaks"
         )
         text.setWordWrap(True)
         layout.addWidget(header)
@@ -484,14 +478,14 @@ class FitGauss:
         # Build text report
         info_lines = [
             (
-                f"R\u00B2 global = {r2_global:.4f}"
+                f"R\u00b2 global = {r2_global:.4f}"
                 if r2_global is not None
-                else "R\u00B2 global = N/A"
+                else "R\u00b2 global = N/A"
             ),
             (
-                f"R\u00B2 local  = {r2_local:.4f}\n"
+                f"R\u00b2 local  = {r2_local:.4f}\n"
                 if r2_local is not None
-                else "R\u00B2 local  = N/A\n"
+                else "R\u00b2 local  = N/A\n"
             ),
         ]
 
@@ -502,15 +496,10 @@ class FitGauss:
                 amp = float(fit_result.params[prefix + "amplitude"].value)
                 sig = float(fit_result.params[prefix + "sigma"].value)
                 info_lines.append(
-                    f"Peak {i + 1}:\n"
-                    f"  U = {U:.4f}\n"
-                    f"  A = {amp:.4e}\n"
-                    f"  σ = {sig:.4e}\n"
+                    f"Peak {i + 1}:\n  U = {U:.4f}\n  A = {amp:.4e}\n  σ = {sig:.4e}\n"
                 )
             except Exception:
-                logger.warning(
-                    "Failed to extract parameters for peak %d in fit report.", i
-                )
+                logger.warning("Failed to extract parameters for peak %d in fit report.", i)
 
         info_text = "\n".join(info_lines)
         panel = viewer.peak_panel
@@ -553,9 +542,7 @@ class FitGauss:
             Qt.TextInteractionFlag.TextSelectableByMouse
             | Qt.TextInteractionFlag.TextSelectableByKeyboard
         )
-        report_label.setAlignment(
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        )
+        report_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         report_label.setStyleSheet("padding-top: 4px; padding-left: 6px;")
 
         scroll_layout.addWidget(report_label)
@@ -580,10 +567,7 @@ class FitGauss:
         )
 
         # Ensure wrapper is visible
-        if (
-            hasattr(self.viewer, "peak_wrapper")
-            and self.viewer.peak_wrapper is not None
-        ):
+        if hasattr(self.viewer, "peak_wrapper") and self.viewer.peak_wrapper is not None:
             self.viewer.peak_wrapper.setVisible(True)
 
         # Show panel
@@ -691,9 +675,7 @@ class FitGauss:
             return
 
         for px in peaks:
-            ln = self.viewer.ax.axvline(
-                px, color="blue", linestyle="--", linewidth=1.5, alpha=0.6
-            )
+            ln = self.viewer.ax.axvline(px, color="blue", linestyle="--", linewidth=1.5, alpha=0.6)
             self.temp_lines.append(ln)
 
         try:

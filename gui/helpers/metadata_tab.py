@@ -65,14 +65,10 @@ class MetadataTab(QWidget):
             empty_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.table.setItem(row, 2, empty_item)
 
-            QTimer.singleShot(
-                0, lambda r=row, b=value_browser: self.adjust_row_height(r, b)
-            )
+            QTimer.singleShot(0, lambda r=row, b=value_browser: self.adjust_row_height(r, b))
 
         self.table.horizontalHeader().sectionResized.connect(
-            lambda idx, old, new: QTimer.singleShot(
-                10, self.recalculate_metadata_row_heights
-            )
+            lambda idx, old, new: QTimer.singleShot(10, self.recalculate_metadata_row_heights)
         )
 
         QTimer.singleShot(30, self.recalculate_metadata_row_heights)
@@ -281,17 +277,13 @@ class MetadataTab(QWidget):
         def find_next():
             if not search_state["positions"]:
                 return
-            search_state["index"] = (search_state["index"] + 1) % len(
-                search_state["positions"]
-            )
+            search_state["index"] = (search_state["index"] + 1) % len(search_state["positions"])
             jump_to_index(search_state["index"])
 
         def find_prev():
             if not search_state["positions"]:
                 return
-            search_state["index"] = (search_state["index"] - 1) % len(
-                search_state["positions"]
-            )
+            search_state["index"] = (search_state["index"] - 1) % len(search_state["positions"])
             jump_to_index(search_state["index"])
 
         # --- manual index entry ---
@@ -390,9 +382,7 @@ class MetadataTab(QWidget):
 
         # Move long values (>4 lines) to the end
         long_value_keys = [
-            k
-            for k in keys
-            if isinstance(attrs[k], str) and len(attrs[k].splitlines()) > 4
+            k for k in keys if isinstance(attrs[k], str) and len(attrs[k].splitlines()) > 4
         ]
         keys = [k for k in keys if k not in long_value_keys]
 

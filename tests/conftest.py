@@ -24,9 +24,7 @@ def _install_spym_stub() -> None:
         spym_stub = types.ModuleType("spym")
 
         def _missing_load(_path: str):
-            raise RuntimeError(
-                "spym.load stub was used without monkeypatching in test."
-            )
+            raise RuntimeError("spym.load stub was used without monkeypatching in test.")
 
         spym_stub.load = _missing_load
         sys.modules["spym"] = spym_stub

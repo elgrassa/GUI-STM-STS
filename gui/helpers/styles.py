@@ -343,9 +343,7 @@ class Style:
         f.setBold(True)
         item.setFont(f)
         item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
-        item.setTextAlignment(
-            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
-        )
+        item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
         return item
 
     @staticmethod
@@ -378,9 +376,7 @@ class Style:
     def load_button(load_button):
         load_button.setFixedHeight(50)
         load_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        load_button.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
-        )
+        load_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         load_button.setStyleSheet(Style.LOAD_BUTTON)
 
     # --- Toolbar ---
@@ -458,26 +454,20 @@ class Style:
     @staticmethod
     def style_peak_panel(peak_panel):
         peak_panel.setObjectName("peakPanel")
-        peak_panel.setSizePolicy(
-            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding
-        )
+        peak_panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         peak_panel.setStyleSheet(Style.PEAK_PANEL)
 
     @staticmethod
     def style_right_panel(right_panel):
         right_panel.setObjectName("rightPanel")
-        right_panel.setSizePolicy(
-            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding
-        )
+        right_panel.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         right_panel.setStyleSheet(Style.PANEL)
 
     @staticmethod
     def style_splitter(splitter):
         splitter.setHandleWidth(8)
         splitter.setStyleSheet(Style.SPLITTER)
-        splitter.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
-        )
+        splitter.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     # --- Metadata Tab ---
     @staticmethod
@@ -485,9 +475,7 @@ class Style:
         search_box = QLineEdit()
         search_icon = QLabel("🔎")
         search_icon.setStyleSheet("QLabel { font-size: 16px; }")
-        search_icon.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
+        search_icon.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
         widget = QWidget()
         layout = QHBoxLayout(widget)
@@ -544,9 +532,7 @@ class Style:
         font.setBold(True)
         item.setFont(font)
         item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
-        item.setTextAlignment(
-            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
-        )
+        item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
         return item
 
     @staticmethod
@@ -684,9 +670,7 @@ class Style:
     def peak_coords_detected(peaks: list[float]) -> QPlainTextEdit:
         coords = QPlainTextEdit()
         coords.setReadOnly(True)
-        coords.setPlainText(
-            "\n".join(f"{i + 1})   {p:.4f}" for i, p in enumerate(peaks))
-        )
+        coords.setPlainText("\n".join(f"{i + 1})   {p:.4f}" for i, p in enumerate(peaks)))
         coords.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
         coords.setFrameStyle(QFrame.Shape.NoFrame)
 
@@ -706,9 +690,7 @@ class Style:
         return coords
 
     @staticmethod
-    def peak_row_manual(
-        index: int, value: float, is_first: bool
-    ) -> tuple[QHBoxLayout, QLineEdit]:
+    def peak_row_manual(index: int, value: float, is_first: bool) -> tuple[QHBoxLayout, QLineEdit]:
         ROW_HEIGHT = 24
         LABEL_WIDTH = 20
 
@@ -767,9 +749,7 @@ class Utils:
         return max(min_height, min(max_height, height))
 
     @staticmethod
-    def copy_text_with_feedback(
-        parent: QWidget, text: str, timeout=600, fade_duration=200
-    ):
+    def copy_text_with_feedback(parent: QWidget, text: str, timeout=600, fade_duration=200):
         if not text:
             return
 

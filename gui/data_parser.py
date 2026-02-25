@@ -136,9 +136,7 @@ def extract_bias_range(attrs: dict) -> str:
 
     bias_end = bias_start + abs(bias_step * bias_nstep)
     if f"{bias_start:.4f}" == f"{bias_end:.4f}":
-        return (
-            f"{bias_start:.4f} [{bias_unit}], difference = {bias_end-bias_start:.16f}"
-        )
+        return f"{bias_start:.4f} [{bias_unit}], difference = {bias_end - bias_start:.16f}"
     return f"[{bias_start:.4f}, {bias_end:.4f}] {bias_unit}"
 
 
@@ -176,13 +174,9 @@ def build_channels_from_sm4(spym_data) -> dict:
 
     for var_name, da in spym_data.data_vars.items():
         if not hasattr(da, "data"):
-            raise ParseError(
-                f"Invalid SM4 structure: channel '{var_name}' is missing data."
-            )
+            raise ParseError(f"Invalid SM4 structure: channel '{var_name}' is missing data.")
         if not hasattr(da, "attrs"):
-            raise ParseError(
-                f"Invalid SM4 structure: channel '{var_name}' is missing attrs."
-            )
+            raise ParseError(f"Invalid SM4 structure: channel '{var_name}' is missing attrs.")
 
         attrs = da.attrs
         if not isinstance(attrs, Mapping):
@@ -302,9 +296,7 @@ def load_sm4_file(
     try:
         first_var = next(iter(data.data_vars.keys()))
     except Exception as exc:
-        raise ParseError(
-            "Invalid SM4 structure: unable to determine first channel."
-        ) from exc
+        raise ParseError("Invalid SM4 structure: unable to determine first channel.") from exc
 
     if topo_var:
         topo_attrs = channels[topo_var]["attrs"]
@@ -331,9 +323,7 @@ def load_sm4_file(
             file_type="sm4",
         )
 
-        metadata.update(
-            {key: val for key, val in topo_meta.items() if "Surface" in key}
-        )
+        metadata.update({key: val for key, val in topo_meta.items() if "Surface" in key})
 
     return MeasurementData(filepath, metadata, channels)
 
@@ -402,17 +392,11 @@ def load_csv_file(path: str) -> MeasurementData:
         attrs = {k: to_float_safe(v, default=v) for k, v in metadata.items()}
         attrs["RHK_Xsize"] = nx
         attrs["RHK_Ysize"] = ny
-        attrs["RHK_Xscale"] = (
-            float(np.nanmean(np.diff(np.unique(x_arr)))) if nx > 1 else 1.0
-        )
-        attrs["RHK_Yscale"] = (
-            float(np.nanmean(np.diff(np.unique(y_arr)))) if ny > 1 else 1.0
-        )
+        attrs["RHK_Xscale"] = float(np.nanmean(np.diff(np.unique(x_arr)))) if nx > 1 else 1.0
+        attrs["RHK_Yscale"] = float(np.nanmean(np.diff(np.unique(y_arr)))) if ny > 1 else 1.0
         attrs["RHK_Xunits"] = attrs.get("RHK_Xunits") or x_unit or "m"
         attrs["RHK_Yunits"] = attrs.get("RHK_Yunits") or y_unit or "m"
-        attrs["RHK_Zunits"] = (
-            attrs.get("RHK_Zunits") or metadata.get("RHK_Zunits") or "m"
-        )
+        attrs["RHK_Zunits"] = attrs.get("RHK_Zunits") or metadata.get("RHK_Zunits") or "m"
 
         channel = {
             "csv_topo": {
@@ -434,8 +418,7 @@ def load_csv_file(path: str) -> MeasurementData:
 
     y_labels_raw = header[2:]
     y_labels = [
-        lbl.strip() if str(lbl).strip() else f"C{i+1}"
-        for i, lbl in enumerate(y_labels_raw)
+        lbl.strip() if str(lbl).strip() else f"C{i + 1}" for i, lbl in enumerate(y_labels_raw)
     ]
 
     x_list, y_rows = [], []

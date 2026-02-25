@@ -77,9 +77,7 @@ class STSToolbar(QWidget):
         self.btn_reset.setText("🗑️")
 
         # ---------------------- Tooltips ----------------------
-        self.btn_save.setToolTip(
-            "<html>" "Save chart image (.png) or<br>" "export data (.csv)" "</html>"
-        )
+        self.btn_save.setToolTip("<html>Save chart image (.png) or<br>export data (.csv)</html>")
 
         self.btn_normalize.setToolTip(
             "<html>"
@@ -104,31 +102,19 @@ class STSToolbar(QWidget):
         )
 
         self.btn_fit.setToolTip(
-            "<html>"
-            "Fit selected curve using Gaussian function<br>"
-            "<i>– Select one curve –</i>"
-            "</html>"
+            "<html>Fit selected curve using Gaussian function<br><i>– Select one curve –</i></html>"
         )
 
         self.btn_subtract.setToolTip(
-            "<html>"
-            "Subtract one selected curve from another<br>"
-            "<i>– Select two curves –</i>"
-            "</html>"
+            "<html>Subtract one selected curve from another<br><i>– Select two curves –</i></html>"
         )
 
         self.btn_divide.setToolTip(
-            "<html>"
-            "Divide one selected curve by another<br>"
-            "<i>– Select two curves –</i>"
-            "</html>"
+            "<html>Divide one selected curve by another<br><i>– Select two curves –</i></html>"
         )
 
         self.chk_swap_order.setToolTip(
-            "<html>"
-            "Swap the order of curves for "
-            "<i>Subtract</i>/<i>Divide</i> operations"
-            "</html>"
+            "<html>Swap the order of curves for <i>Subtract</i>/<i>Divide</i> operations</html>"
         )
 
         self.btn_average.setToolTip(
@@ -141,9 +127,7 @@ class STSToolbar(QWidget):
         self.btn_update.setToolTip("Update chart, plot selected curves")
         self.btn_chk_all.setToolTip("Check all curves on the list")
         self.btn_hide.setToolTip("Clear chart, uncheck all selected curves")
-        self.btn_reset.setToolTip(
-            "Reset to original dataset, remove all modified curves"
-        )
+        self.btn_reset.setToolTip("Reset to original dataset, remove all modified curves")
 
     # ---------------------- Create menus ----------------------
     def create_menus(self):
@@ -154,9 +138,7 @@ class STSToolbar(QWidget):
 
         self.normalize_menu = QMenu(self)
         self.action_norm_IU = self.normalize_menu.addAction("🔨 Normalize by I/U")
-        self.action_norm_Imax = self.normalize_menu.addAction(
-            "🔧 Normalize by I\u2098\u2090\u2093"
-        )
+        self.action_norm_Imax = self.normalize_menu.addAction("🔧 Normalize by I\u2098\u2090\u2093")
         self.btn_normalize.setMenu(self.normalize_menu)
 
         self.filter_menu = QMenu(self)

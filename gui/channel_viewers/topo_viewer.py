@@ -200,9 +200,7 @@ class TopoViewer(QMainWindow):
             return
 
         # Use display_data if available, otherwise fallback to original
-        data = (
-            self.display_data if self.display_data is not None else self.original_data
-        )
+        data = self.display_data if self.display_data is not None else self.original_data
 
         fig = self.canvas.figure
 
@@ -270,9 +268,7 @@ class TopoViewer(QMainWindow):
         # Convolve Y
         out = np.empty_like(data)
         for i in range(data.shape[1]):
-            out[:, i] = np.convolve(
-                np.pad(temp[:, i], pad_width=pad, mode="edge"), k, mode="valid"
-            )
+            out[:, i] = np.convolve(np.pad(temp[:, i], pad_width=pad, mode="edge"), k, mode="valid")
         return out
 
     # ------------------------- Save / Export -----------------------------
@@ -306,9 +302,7 @@ class TopoViewer(QMainWindow):
             try:
                 os.remove(file_path)
             except Exception as e:
-                QMessageBox.critical(
-                    self, "Error", f"Cannot overwrite existing file:\n{e}"
-                )
+                QMessageBox.critical(self, "Error", f"Cannot overwrite existing file:\n{e}")
                 return
 
         # Metadata source
@@ -325,12 +319,8 @@ class TopoViewer(QMainWindow):
 
         ny, nx = self.display_data.shape
 
-        x_range = (
-            abs(xscale * xsize) if xscale is not None and xsize is not None else nx
-        )
-        y_range = (
-            abs(yscale * ysize) if yscale is not None and ysize is not None else ny
-        )
+        x_range = abs(xscale * xsize) if xscale is not None and xsize is not None else nx
+        y_range = abs(yscale * ysize) if yscale is not None and ysize is not None else ny
 
         x_axis = np.linspace(0, x_range, nx)
         y_axis = np.linspace(0, y_range, ny)
@@ -343,9 +333,7 @@ class TopoViewer(QMainWindow):
         data = np.array(self.display_data)
 
         try:
-            with open(
-                file_path, "w", newline="", encoding="utf-8", errors="replace"
-            ) as f:
+            with open(file_path, "w", newline="", encoding="utf-8", errors="replace") as f:
                 writer = csv.writer(f)
 
                 # --- Metadata rows ---
@@ -539,12 +527,8 @@ class TopoViewer(QMainWindow):
         ny, nx = self.display_data.shape
 
         # Compute full range in meters
-        x_range = (
-            abs(xscale * xsize) if xscale is not None and xsize is not None else nx
-        )
-        y_range = (
-            abs(yscale * ysize) if yscale is not None and ysize is not None else ny
-        )
+        x_range = abs(xscale * xsize) if xscale is not None and xsize is not None else nx
+        y_range = abs(yscale * ysize) if yscale is not None and ysize is not None else ny
 
         # Auto-scale
         _, x_unit_disp = self.auto_scale(x_range, xunit)
@@ -578,14 +562,10 @@ class TopoViewer(QMainWindow):
         y_ticks_display = [self.auto_scale(y_coords[i], yunit)[0] for i in yticks_idx]
 
         self.ax.xaxis.set_major_locator(FixedLocator(xticks_idx))
-        self.ax.xaxis.set_major_formatter(
-            FixedFormatter([f"{val:.1f}" for val in x_ticks_display])
-        )
+        self.ax.xaxis.set_major_formatter(FixedFormatter([f"{val:.1f}" for val in x_ticks_display]))
 
         self.ax.yaxis.set_major_locator(FixedLocator(yticks_idx))
-        self.ax.yaxis.set_major_formatter(
-            FixedFormatter([f"{val:.1f}" for val in y_ticks_display])
-        )
+        self.ax.yaxis.set_major_formatter(FixedFormatter([f"{val:.1f}" for val in y_ticks_display]))
 
     def on_mouse_move(self, event):
         if event.inaxes != self.ax or self.display_data is None:
@@ -593,12 +573,7 @@ class TopoViewer(QMainWindow):
 
         x = int(event.xdata)
         y = int(event.ydata)
-        if (
-            x < 0
-            or y < 0
-            or y >= self.display_data.shape[0]
-            or x >= self.display_data.shape[1]
-        ):
+        if x < 0 or y < 0 or y >= self.display_data.shape[0] or x >= self.display_data.shape[1]:
             return
 
         # --- Metadata for scaling ---
@@ -691,8 +666,7 @@ class TopoViewer(QMainWindow):
         self.cmap_combo.currentTextChanged.connect(self.change_cmap)
         self.btn_flatten.clicked.connect(self.flatten_clicked)
         self.smooth_slider.valueChanged.connect(
-            lambda val: self.smooth_value_label.setText(f"{val}%")
-            or self.recompute_display()
+            lambda val: self.smooth_value_label.setText(f"{val}%") or self.recompute_display()
         )
         self.auto_contrast_checkbox.stateChanged.connect(self.recompute_display)
         self.btn_reset.clicked.connect(self.reset_viewer)
@@ -702,9 +676,7 @@ class TopoViewer(QMainWindow):
         self.cmap_label.setToolTip("Select colormap for topography")
         self.btn_flatten.setToolTip("Subtract best-fit plane and shift minimum to zero")
         self.smooth_label.setToolTip("Apply smoothing filter (0 = None)")
-        self.auto_contrast_checkbox.setToolTip(
-            "Apply contrast using 1%-99% percentiles"
-        )
+        self.auto_contrast_checkbox.setToolTip("Apply contrast using 1%-99% percentiles")
         self.btn_reset.setToolTip("Reset to original data")
 
     # ----------------------------------------------------------
@@ -719,9 +691,7 @@ class TopoViewer(QMainWindow):
         Style.style_buttons(all_buttons)
 
         Style.style_cmap_combo(self.cmap_label, self.cmap_combo)
-        Style.style_smooth_widgets(
-            self.smooth_label, self.smooth_slider, self.smooth_value_label
-        )
+        Style.style_smooth_widgets(self.smooth_label, self.smooth_slider, self.smooth_value_label)
         Style.style_checkbox(self.auto_contrast_checkbox)
         Style.style_menu(self.save_menu)
 

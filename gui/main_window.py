@@ -81,14 +81,10 @@ class MainWindow(QMainWindow):
         self.channel_list.setMouseTracking(True)
         self.channel_list.viewport().setCursor(Qt.CursorShape.ArrowCursor)
         self.channel_list.entered.connect(
-            lambda index: self.channel_list.viewport().setCursor(
-                Qt.CursorShape.PointingHandCursor
-            )
+            lambda index: self.channel_list.viewport().setCursor(Qt.CursorShape.PointingHandCursor)
         )
-        self.channel_list.viewport().leaveEvent = (
-            lambda event: self.channel_list.viewport().setCursor(
-                Qt.CursorShape.ArrowCursor
-            )
+        self.channel_list.viewport().leaveEvent = lambda event: (
+            self.channel_list.viewport().setCursor(Qt.CursorShape.ArrowCursor)
         )
         self.channel_list.itemDoubleClicked.connect(self.open_correct_viewer)
 
@@ -185,21 +181,19 @@ class MainWindow(QMainWindow):
             if t == "current" and current_ch is None:
                 current_ch = ch
 
-        filename = channel_data.get("attrs", {}).get(
-            "CSV filename"
-        ) or channel_data.get("attrs", {}).get("File")
+        filename = channel_data.get("attrs", {}).get("CSV filename") or channel_data.get(
+            "attrs", {}
+        ).get("File")
 
-        viewer = STSViewer(
-            channel_data=channel_data, current_channel=current_ch, parent=None
-        )
+        viewer = STSViewer(channel_data=channel_data, current_channel=current_ch, parent=None)
         viewer.setWindowTitle(f"STS Viewer ({channel_name}) - {filename}")
         viewer.show()
         self.viewer_windows.append(viewer)
 
     def open_topo(self, channel_name: str, channel_data: dict):
-        filename = channel_data.get("attrs", {}).get(
-            "CSV filename"
-        ) or channel_data.get("attrs", {}).get("File")
+        filename = channel_data.get("attrs", {}).get("CSV filename") or channel_data.get(
+            "attrs", {}
+        ).get("File")
         viewer = TopoViewer(channel_data, parent=None)
         viewer.setWindowTitle(f"Topo Viewer ({channel_name}) – {filename}")
         viewer.show()

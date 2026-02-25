@@ -247,9 +247,7 @@ class STSOperations:
         return new_entries
 
     @staticmethod
-    def compute_derivative(
-        all_curves, indices, amp=None, fmod=None, tau=None, use_lockin=False
-    ):
+    def compute_derivative(all_curves, indices, amp=None, fmod=None, tau=None, use_lockin=False):
         new_entries = []
 
         for idx in indices:
@@ -297,13 +295,9 @@ class STSOperations:
         # Check amplitude comparing to bias range and sampling step
         dx_min = np.min(np.diff(x))
         if amp > 0.5 * (x[-1] - x[0]):
-            logger.warning(
-                "Amplitude larger than bias range. Derivative may be inaccurate."
-            )
+            logger.warning("Amplitude larger than bias range. Derivative may be inaccurate.")
         elif amp > dx_min:
-            logger.info(
-                "Amplitude larger than sampling step – derivative will be smoothed."
-            )
+            logger.info("Amplitude larger than sampling step – derivative will be smoothed.")
 
         # Lock-in simulation
         Nph = 120
