@@ -69,6 +69,19 @@ Install the required dependencies:
 pip install -r requirements.txt
 ```
 
+Install developer tooling (lint, formatting, tests, coverage):
+``` bash
+pip install ruff pytest pytest-cov pip-audit
+```
+
+Install `gitleaks` from the official project releases:
+[gitleaks installation guide](https://github.com/gitleaks/gitleaks#installation)
+
+Install packaging tooling:
+```bash
+pip install pyinstaller
+```
+
 
 ## Usage
 
@@ -79,6 +92,57 @@ python main.py
 
 > [!NOTE]
 > The program is intended to be run from a Python IDE (e.g., PyCharm, VS Code) or from the terminal. Make sure the virtual environment is active before running the script.
+
+## Development
+
+Setup:
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+pip install ruff pytest pytest-cov
+```
+
+Dependency lock (preferred for reproducible installs):
+```bash
+pip install pip-tools
+pip-compile --output-file requirements.lock requirements.txt
+pip install -r requirements.lock
+```
+
+`requirements.txt` remains the editable input list. CI installs from `requirements.lock`.
+
+Quality commands:
+```bash
+make fmt
+make lint
+make test
+```
+
+### Documentation
+
+Quick technical overview and operations guide:
+- [Architecture (C4-lite)](docs/architecture.md)
+- [Threat model](docs/threat-model.md)
+- [Runbook](docs/runbook.md)
+- [Testing strategy](docs/testing.md)
+
+### Packaging (PyInstaller)
+
+Build command (all platforms):
+```bash
+python packaging/build.py
+```
+
+Artifacts are generated under `dist/GUI-STM-STS/`.
+
+- Windows (`windows-latest`): executable bundle with `GUI-STM-STS.exe`
+- macOS (`macos-latest`): app bundle folder with executable in `dist/GUI-STM-STS/`
+- Linux (`ubuntu-latest`): executable folder in `dist/GUI-STM-STS/`
+
+Automated build artifacts are produced by:
+- [CI workflow](.github/workflows/ci.yml)
+- [Release build workflow](.github/workflows/release-build.yml)
 
 ### Loading and Visualizing Data
 
@@ -153,6 +217,18 @@ GUI-STS/
 |    ├── data_parser.py                   # Module for reading `.sm4` and `.csv` files
 |    └── main_window.py                   # First window displayed; allows to open files, select channels and view file metadata.
 ├── main.py                               # Entry point to launch the GUI.
+├── pyproject.toml                        # Ruff, pytest and coverage configuration.
+├── Makefile                              # Helper targets: fmt, lint, test.
+├── .gitleaks.toml                        # Secret-scanning configuration (extends gitleaks defaults).
+├── SECURITY.md                           # Security policy and vulnerability reporting process.
+├── docs/
+|    ├── architecture.md                  # C4-lite architecture and CSV/SM4 data flow.
+|    ├── threat-model.md                  # Threat model focused on file ingestion risks.
+|    ├── runbook.md                       # Local operation and troubleshooting guide.
+|    └── testing.md                       # Test scope, mocked SM4 strategy, and plan.
+├── packaging/
+|    ├── stm_sts.spec                     # PyInstaller spec used for standalone builds.
+|    └── build.py                         # Cross-platform helper script for PyInstaller builds.
 ├── requirements.txt                      # Python dependencies.
 ├── .github                               # GitHub-specific configuration, workflows or actions.
 ├── .gitignore                            # Files and folders to ignore in version control
@@ -168,8 +244,61 @@ GUI-STS/
 
 ## Testing
 
-This project does not include automated tests.  
-The functionality was validated manually using experimental STM/STS data.
+The repository is configured for `pytest` + `pytest-cov` and includes Makefile commands:
+
+```bash
+make test
+```
+
+Current automated tests focus on pure logic and file parsing (no Qt event loop startup),
+including synthetic CSV fixtures under `tests/fixtures/`.
+
+SM4 parsing tests are currently mocked (injectable loader strategy) until real `.sm4`
+sample files can be included by policy.
+The mocked path monkeypatches `gui.data_parser.load_sm4` to keep CI deterministic and Qt-free.
+
+At the moment, functionality is still primarily validated manually using experimental STM/STS data.
+
+## Troubleshooting
+
+- If Gaussian fitting cannot continue (for example, no peaks detected), STS viewer errors are shown in a message box instead of failing silently.
+- Matplotlib Qt canvas imports are unified to `backend_qtagg` for PyQt6 viewers (`STSViewer`, `TopoViewer`, and fit dialogs).
+
+## Security
+
+This repository includes free GitHub-native security checks for a public repository.
+
+GitHub security automation:
+- Dependabot updates Python dependencies from `requirements.txt` weekly (grouped updates): [`.github/dependabot.yml`](.github/dependabot.yml)
+- CodeQL static analysis for Python on `push`, `pull_request`, and weekly schedule: [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)
+- Security workflow with dependency audit + secret scan: [`.github/workflows/security-scheduled.yml`](.github/workflows/security-scheduled.yml)
+
+Notes:
+- `gitleaks` results are uploaded as SARIF to GitHub Code Scanning.
+- `pip-audit` currently runs as fail-on-findings (no native SARIF output in this setup).
+
+Run dependency vulnerability scanning:
+```bash
+make audit-deps
+```
+
+Run secret scanning:
+```bash
+make scan-secrets
+```
+
+Run both checks:
+```bash
+make security
+```
+
+Equivalent direct commands:
+```bash
+pip-audit -r requirements.txt
+gitleaks detect --source . --config .gitleaks.toml --redact --no-banner
+```
+
+See [SECURITY.md](SECURITY.md) for reporting guidance.
 
 
 ## Limitations
