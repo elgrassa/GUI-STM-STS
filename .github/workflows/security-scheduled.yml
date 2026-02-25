@@ -1,0 +1,63 @@
+name: Security
+
+on:
+  schedule:
+    - cron: "35 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  pip-audit:
+    name: Dependency Audit (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.lock
+            requirements.txt
+
+      - name: Run pip-audit
+        uses: pypa/gh-action-pip-audit@v1.1.0
+        with:
+          inputs: requirements.lock
+
+  gitleaks:
+    name: Secret Scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        id: gitleaks
+        uses: DariuszPorowski/github-action-gitleaks@v2
+        with:
+          config: .gitleaks.toml
+          report_format: sarif
+          no_git: true
+          redact: true
+          fail: false
+
+      - name: Upload gitleaks SARIF
+        if: ${{ steps.gitleaks.outputs.report != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.gitleaks.outputs.report }}
+
+      - name: Fail on leaked secrets
+        if: ${{ steps.gitleaks.outputs.exitcode == '1' }}
+        run: |
+          echo "gitleaks found potential secrets."
+          exit 1

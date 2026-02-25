@@ -1,0 +1,4 @@
+title = "GUI-STM-STS gitleaks config"
+
+[extend]
+useDefault = true

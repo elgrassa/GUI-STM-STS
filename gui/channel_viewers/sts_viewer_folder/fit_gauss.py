@@ -1,6 +1,13 @@
 from PyQt6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QMessageBox, QApplication,
-    QDialog, QToolButton, QScrollArea, QLabel, QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QMessageBox,
+    QApplication,
+    QDialog,
+    QToolButton,
+    QScrollArea,
+    QLabel,
+    QWidget,
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
@@ -15,6 +22,7 @@ from gui.channel_viewers.sts_viewer_folder.sts_processing import STSOperations
 
 
 logger = logging.getLogger(__name__)
+
 
 class FitGauss:
     def __init__(self, viewer, curve_index=None):
@@ -59,12 +67,7 @@ class FitGauss:
         self.draw_peak_preview(peaks)
 
         # Store curve context for panel callbacks
-        self.last_run_context = {
-            "x": x,
-            "y": y,
-            "label": label,
-            "idx": idx
-        }
+        self.last_run_context = {"x": x, "y": y, "label": label, "idx": idx}
 
         # Show peak panel
         self.show_peak_panel(peaks, x=x, y=y, label=label, idx=idx)
@@ -86,7 +89,11 @@ class FitGauss:
             x = np.asarray(bias_axis, dtype=float)
 
         # Generate label
-        label = entry.get("short") or entry.get("label") or (f"C{idx + 1}" if idx is not None else "Unknown")
+        label = (
+            entry.get("short")
+            or entry.get("label")
+            or (f"C{idx + 1}" if idx is not None else "Unknown")
+        )
 
         return x, y, label
 
@@ -100,10 +107,10 @@ class FitGauss:
         # Plot fitted curve + components
         self.viewer.ax.clear()
         self.viewer.plotter.plot_curves(indices=[idx], average=False)
-        self.viewer.ax.plot(fit_x, fit_y, '--', lw=2.0, label=short_label)
+        self.viewer.ax.plot(fit_x, fit_y, "--", lw=2.0, label=short_label)
         for i, gm in enumerate(components):
             y_comp = gm.eval(fit_result.params, x=fit_x) + np.min(y)
-            self.viewer.ax.plot(fit_x, y_comp, linestyle=':', alpha=0.6, color='gray')
+            self.viewer.ax.plot(fit_x, y_comp, linestyle=":", alpha=0.6, color="gray")
         self.viewer.ax.legend()
         self.viewer.canvas.draw_idle()
 
@@ -115,7 +122,7 @@ class FitGauss:
             fit_result=fit_result,
             fit_components=components,
             r2_local=r2_local,
-            r2_global=r2_global
+            r2_global=r2_global,
         )
         fit_entry = self.viewer.all_curves[new_index]
 
@@ -142,7 +149,7 @@ class FitGauss:
             y_smooth,
             height=np.max(y_smooth) * 0.05,  # only peaks >5% of max
             distance=int(len(x) * 0.05),  # min distance between peaks (~5% of axis)
-            prominence=np.max(y_smooth) * 0.05
+            prominence=np.max(y_smooth) * 0.05,
         )
 
         # Limit number of peaks
@@ -196,18 +203,16 @@ class FitGauss:
         layout.addLayout(btn_layout)
 
         self.btn_edit = self.add_button(
-            "✏️ Edit",
-            "Manually select peak positions",
-            btn_layout,
-            edit_cb
+            "✏️ Edit", "Manually select peak positions", btn_layout, edit_cb
         )
 
         self.btn_ok = self.add_button(
             "✅ OK",
             "Confirm detected peaks and proceed to fitting",
             btn_layout,
-            lambda: self.on_peak_panel_ok(peaks, self.edit_x, self.edit_y,
-                                          self.edit_label, self.edit_idx)
+            lambda: self.on_peak_panel_ok(
+                peaks, self.edit_x, self.edit_y, self.edit_label, self.edit_idx
+            ),
         )
 
         panel.setVisible(True)
@@ -222,9 +227,7 @@ class FitGauss:
         header = QLabel("| SELECT PEAKS")
         Style.style_title(header)
         text = QLabel(
-            f"- Left click = add peak,\n"
-            f"- Right click = undo last.\n\n"
-            f"Limit: 1-{max_peaks} peaks"
+            f"- Left click = add peak,\n- Right click = undo last.\n\nLimit: 1-{max_peaks} peaks"
         )
         text.setWordWrap(True)
         layout.addWidget(header)
@@ -364,14 +367,11 @@ class FitGauss:
             "❌ Cancel",
             "Cancel selection and return to detected peaks",
             btn_layout,
-            cancel
+            cancel,
         )
 
         self.btn_done = self.add_button(
-            "✅ Done",
-            "Confirm selection and proceed to fitting",
-            btn_layout,
-            done
+            "✅ Done", "Confirm selection and proceed to fitting", btn_layout, done
         )
 
     def perform_fit(self, x, y, peaks):
@@ -412,9 +412,13 @@ class FitGauss:
             amp_guess = float(yloc[local_max_idx])
             sigma_guess = max(np.ptp(xloc) / 2.355, (x[1] - x[0]) * 0.5)
 
-            params[prefix + "center"].set(value=center, min=center - local_half, max=center + local_half)
+            params[prefix + "center"].set(
+                value=center, min=center - local_half, max=center + local_half
+            )
             params[prefix + "amplitude"].set(value=amp_guess, min=0)
-            params[prefix + "sigma"].set(value=sigma_guess, min=sigma_guess / 8.0, max=sigma_guess * 8.0)
+            params[prefix + "sigma"].set(
+                value=sigma_guess, min=sigma_guess / 8.0, max=sigma_guess * 8.0
+            )
 
         # --- Combined mask for local R2 ---
         combined_mask = np.zeros_like(x, dtype=bool)
@@ -436,7 +440,7 @@ class FitGauss:
 
         # --- Global R2 ---
         residuals_global = y - y_fit_full
-        ss_res_global = np.sum(residuals_global ** 2)
+        ss_res_global = np.sum(residuals_global**2)
         ss_tot_global = np.sum((y - np.mean(y)) ** 2)
         r2_global = 1 - ss_res_global / ss_tot_global if ss_tot_global != 0 else None
 
@@ -447,7 +451,7 @@ class FitGauss:
 
         if len(x_local) > 5:
             residuals_local = y_local - y_fit_local
-            ss_res_local = np.sum(residuals_local ** 2)
+            ss_res_local = np.sum(residuals_local**2)
             ss_tot_local = np.sum((y_local - np.mean(y_local)) ** 2)
             r2_local = 1 - ss_res_local / ss_tot_local if ss_tot_local != 0 else None
         else:
@@ -473,8 +477,16 @@ class FitGauss:
 
         # Build text report
         info_lines = [
-            f"R\u00B2 global = {r2_global:.4f}" if r2_global is not None else "R\u00B2 global = N/A",
-            f"R\u00B2 local  = {r2_local:.4f}\n" if r2_local is not None else "R\u00B2 local  = N/A\n",
+            (
+                f"R\u00b2 global = {r2_global:.4f}"
+                if r2_global is not None
+                else "R\u00b2 global = N/A"
+            ),
+            (
+                f"R\u00b2 local  = {r2_local:.4f}\n"
+                if r2_local is not None
+                else "R\u00b2 local  = N/A\n"
+            ),
         ]
 
         for i, gm in enumerate(components):
@@ -484,10 +496,7 @@ class FitGauss:
                 amp = float(fit_result.params[prefix + "amplitude"].value)
                 sig = float(fit_result.params[prefix + "sigma"].value)
                 info_lines.append(
-                    f"Peak {i + 1}:\n"
-                    f"  U = {U:.4f}\n"
-                    f"  A = {amp:.4e}\n"
-                    f'  σ = {sig:.4e}\n'
+                    f"Peak {i + 1}:\n  U = {U:.4f}\n  A = {amp:.4e}\n  σ = {sig:.4e}\n"
                 )
             except Exception:
                 logger.warning("Failed to extract parameters for peak %d in fit report.", i)
@@ -511,7 +520,7 @@ class FitGauss:
             "⚛️ FER peak position",
             "Show Field Emission Resonance peak positions.",
             panel_layout,
-            lambda: self.open_fer_peak_window(fit_result, components)
+            lambda: self.open_fer_peak_window(fit_result, components),
         )
 
         # --- Scrollable fit report ---
@@ -530,8 +539,8 @@ class FitGauss:
         report_label = QLabel(info_text)
         report_label.setWordWrap(True)
         report_label.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextSelectableByMouse |
-            Qt.TextInteractionFlag.TextSelectableByKeyboard
+            Qt.TextInteractionFlag.TextSelectableByMouse
+            | Qt.TextInteractionFlag.TextSelectableByKeyboard
         )
         report_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         report_label.setStyleSheet("padding-top: 4px; padding-left: 6px;")
@@ -547,14 +556,14 @@ class FitGauss:
             "📄 Copy",
             "Copy peak report data to clipboard",
             btn_layout,
-            lambda: QApplication.clipboard().setText(info_text)
+            lambda: QApplication.clipboard().setText(info_text),
         )
 
         self.btn_close = self.add_button(
             "❌ Close",
             "Close the panel",
             btn_layout,
-            lambda: self.viewer.peak_wrapper.setVisible(False)
+            lambda: self.viewer.peak_wrapper.setVisible(False),
         )
 
         # Ensure wrapper is visible
@@ -602,28 +611,35 @@ class FitGauss:
 
         # Matplotlib figure
         fig, ax = plt.subplots()
-        ax.scatter(x, y, color='blue', s=50)
+        ax.scatter(x, y, color="blue", s=50)
 
         x_min = -0.1
         y_min = slope * x_min + intercept
         ax.set_xlim(left=x_min)
         ax.set_ylim(bottom=y_min)
 
-        ax.axhline(0, color='black', linewidth=1)  # Bold x-axis
-        ax.axvline(0, color='black', linewidth=1)  # Bold y-axis
+        ax.axhline(0, color="black", linewidth=1)  # Bold x-axis
+        ax.axvline(0, color="black", linewidth=1)  # Bold y-axis
 
         x_line = np.linspace(x_min, max(x), 500)
         y_line = slope * x_line + intercept
-        ax.plot(x_line, y_line, color='grey', linestyle='--',
-                label=(f'Linear fit: y = {slope:.4f}x + {intercept:.4f}\n'
-                       f'$R^2$ = {r2:.4f}\n'
-                       f'Work function $\\phi$ = {intercept:.4f} eV'))
-        ax.set_xlabel(r'$(n - 1/4)^{2/3}$', fontsize=12)
+        ax.plot(
+            x_line,
+            y_line,
+            color="grey",
+            linestyle="--",
+            label=(
+                f"Linear fit: y = {slope:.4f}x + {intercept:.4f}\n"
+                f"$R^2$ = {r2:.4f}\n"
+                f"Work function $\\phi$ = {intercept:.4f} eV"
+            ),
+        )
+        ax.set_xlabel(r"$(n - 1/4)^{2/3}$", fontsize=12)
         ax.set_ylabel("Bias [V]", fontsize=12)
         ax.set_title("FER Peak Positions", fontsize=14)
         ax.minorticks_on()
-        ax.grid(True, which='major', linewidth=0.6)
-        ax.grid(True, which='minor', linewidth=0.3, alpha=0.4)
+        ax.grid(True, which="major", linewidth=0.6)
+        ax.grid(True, which="minor", linewidth=0.3, alpha=0.4)
         ax.legend()
 
         canvas = FigureCanvas(fig)

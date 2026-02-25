@@ -2,10 +2,20 @@ import os
 import csv
 import spym
 import numpy as np
-from typing import Optional, Dict, Any
+from collections.abc import Mapping
+from typing import Optional, Dict, Any, Callable
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class ParseError(ValueError):
+    """Raised when measurement data parsing fails for a known invalid format."""
+
+
+# Soft guard for very large SM4 channels (can be overridden via env in constrained environments).
+MAX_SM4_CHANNEL_POINTS = int(os.getenv("STM_STS_MAX_SM4_POINTS", "5000000"))
+
 
 class MeasurementData:
     def __init__(self, path: str, metadata: dict, channels: dict):
@@ -24,6 +34,7 @@ class MeasurementData:
 
     def __repr__(self):
         return f"Sm4Data(path={os.path.basename(self.path)!r}, channels={len(self.channels)})"
+
 
 class DataManager:
     def __init__(self):
@@ -58,6 +69,7 @@ class DataManager:
     def get_channel_data(self, name: str):
         return self.current_data.get_channel(name) if self.current_data else None
 
+
 # ------------------------- Utilities -------------------------
 def to_float_safe(val, default=None):
     if val is None:
@@ -71,10 +83,12 @@ def to_float_safe(val, default=None):
     except (ValueError, TypeError):
         return default
 
+
 def infer_channel_type(attrs: Dict[str, Any]) -> str:
     if is_metric_channel({"attrs": attrs}):
         return "topo"
     return "sts"
+
 
 def is_metric_channel(v: Dict[str, Any]) -> bool:
     a = v.get("attrs", {})
@@ -85,6 +99,7 @@ def is_metric_channel(v: Dict[str, Any]) -> bool:
     ]
     allowed = {"m", "meter", "metre", "nm", "nanometer", "å", "angstrom", "angstrem"}
     return all(u in allowed for u in units)
+
 
 def extract_surface_size(attrs: dict) -> str:
     xscale = to_float_safe(attrs.get("RHK_Xscale"))
@@ -104,6 +119,7 @@ def extract_surface_size(attrs: dict) -> str:
         return f"[{x_extent:.1e}, {y_extent:.1e}] {xunit}"
     return f"{x_extent:.1e} {xunit}, {y_extent:.1e} {yunit}"
 
+
 def extract_bias_range(attrs: dict) -> str:
     bias_start = to_float_safe(attrs.get("RHK_Bias"))
     bias_step = to_float_safe(attrs.get("RHK_Xscale"))
@@ -111,20 +127,23 @@ def extract_bias_range(attrs: dict) -> str:
     bias_unit = attrs.get("RHK_Xunit") or "V"
 
     valid = (
-        isinstance(bias_start, float) and
-        isinstance(bias_step, float) and
-        isinstance(bias_nstep, float)
+        isinstance(bias_start, float)
+        and isinstance(bias_step, float)
+        and isinstance(bias_nstep, float)
     )
     if not valid:
         return "Unknown"
 
     bias_end = bias_start + abs(bias_step * bias_nstep)
     if f"{bias_start:.4f}" == f"{bias_end:.4f}":
-        return f"{bias_start:.4f} [{bias_unit}], difference = {bias_end-bias_start:.16f}"
+        return f"{bias_start:.4f} [{bias_unit}], difference = {bias_end - bias_start:.16f}"
     return f"[{bias_start:.4f}, {bias_end:.4f}] {bias_unit}"
 
+
 # ------------------------- Metadata builder -------------------------
-def build_common_metadata(path: str, attrs: dict, channel_type: str, file_type: str = "sm4") -> dict:
+def build_common_metadata(
+    path: str, attrs: dict, channel_type: str, file_type: str = "sm4"
+) -> dict:
     filename = os.path.basename(path)
     title = attrs.get("filename") or filename
     date = attrs.get("RHK_Date", "Unknown")
@@ -135,7 +154,7 @@ def build_common_metadata(path: str, attrs: dict, channel_type: str, file_type: 
         "Date": date,
         "Surface size (STM)": "Unknown",
         "Bias range (STS)": extract_bias_range(attrs),
-        "Session Comment": comment
+        "Session Comment": comment,
     }
 
     # TOPO only - add surface size
@@ -148,14 +167,35 @@ def build_common_metadata(path: str, attrs: dict, channel_type: str, file_type: 
 
     return metadata
 
+
 # ------------------------- Channel builders -------------------------
 def build_channels_from_sm4(spym_data) -> dict:
     channels = {}
 
     for var_name, da in spym_data.data_vars.items():
-        title = (da.attrs.get("long_name", var_name)).strip()
-        ch_type = infer_channel_type(da.attrs)
-        data_arr = np.asarray(da.data)
+        if not hasattr(da, "data"):
+            raise ParseError(f"Invalid SM4 structure: channel '{var_name}' is missing data.")
+        if not hasattr(da, "attrs"):
+            raise ParseError(f"Invalid SM4 structure: channel '{var_name}' is missing attrs.")
+
+        attrs = da.attrs
+        if not isinstance(attrs, Mapping):
+            try:
+                attrs = dict(attrs)
+            except Exception as exc:
+                raise ParseError(
+                    f"Invalid SM4 structure: channel '{var_name}' attrs are not mapping-like."
+                ) from exc
+
+        attrs_dict = dict(attrs)
+        title = str(attrs_dict.get("long_name", var_name)).strip()
+        ch_type = infer_channel_type(attrs_dict)
+        data_arr = np.asarray(da.data, dtype=float)
+
+        if MAX_SM4_CHANNEL_POINTS > 0 and data_arr.size > MAX_SM4_CHANNEL_POINTS:
+            raise ParseError(
+                f"SM4 channel '{var_name}' exceeds size limit ({MAX_SM4_CHANNEL_POINTS} points)."
+            )
 
         if data_arr.ndim == 1:  # 2D array expected
             data_arr = data_arr.reshape(-1, 1)
@@ -163,16 +203,14 @@ def build_channels_from_sm4(spym_data) -> dict:
             "type": ch_type,
             "title": title,
             "data": data_arr,
-            "attrs": dict(da.attrs),
+            "attrs": attrs_dict,
             "file_type": "sm4",
         }
     return channels
 
+
 def build_channel_from_csv(
-    x: np.ndarray,
-    y_matrix: np.ndarray,
-    metadata: dict,
-    y_labels: list[str]
+    x: np.ndarray, y_matrix: np.ndarray, metadata: dict, y_labels: list[str]
 ) -> dict:
 
     # Normalize input
@@ -225,13 +263,40 @@ def build_channel_from_csv(
         }
     }
 
+
 # ------------------------- File loaders -------------------------
-def load_sm4_file(filepath: str) -> MeasurementData:
-    data = spym.load(filepath)
+def load_sm4(filepath: str):
+    """Default SM4 reader seam, split out for dependency injection in tests."""
+    return spym.load(filepath)
+
+
+def _validate_sm4_structure(sm4_data: Any) -> None:
+    if sm4_data is None or not hasattr(sm4_data, "data_vars"):
+        raise ParseError("Invalid SM4 structure: missing data_vars.")
+
+    data_vars = getattr(sm4_data, "data_vars")
+    if data_vars is None or len(data_vars) == 0:
+        raise ParseError("Invalid SM4 structure: no channels found.")
+
+
+def load_sm4_file(
+    filepath: str,
+    sm4_loader: Optional[Callable[[str], Any]] = None,
+) -> MeasurementData:
+    loader = sm4_loader or load_sm4
+    try:
+        data = loader(filepath)
+    except Exception as exc:
+        raise ParseError(f"Failed to load SM4 file: {exc}") from exc
+
+    _validate_sm4_structure(data)
     channels = build_channels_from_sm4(data)
 
     topo_var = next((k for k, v in channels.items() if is_metric_channel(v)), None)
-    first_var = next(iter(data.data_vars.keys()))
+    try:
+        first_var = next(iter(data.data_vars.keys()))
+    except Exception as exc:
+        raise ParseError("Invalid SM4 structure: unable to determine first channel.") from exc
 
     if topo_var:
         topo_attrs = channels[topo_var]["attrs"]
@@ -258,11 +323,7 @@ def load_sm4_file(filepath: str) -> MeasurementData:
             file_type="sm4",
         )
 
-        metadata.update({
-            key: val
-            for key, val in topo_meta.items()
-            if "Surface" in key
-        })
+        metadata.update({key: val for key, val in topo_meta.items() if "Surface" in key})
 
     return MeasurementData(filepath, metadata, channels)
 
@@ -283,7 +344,7 @@ def load_csv_file(path: str) -> MeasurementData:
     metadata["File"] = metadata.get("File") or metadata["CSV filename"]
 
     # Infer channel type from title
-    title = (str(metadata.get("RHK_Label") or "").strip() or "Topography")
+    title = str(metadata.get("RHK_Label") or "").strip() or "Topography"
     ch_type = infer_channel_type(metadata)
 
     # --- TOPO channel parsing ---
@@ -356,7 +417,9 @@ def load_csv_file(path: str) -> MeasurementData:
         raise ValueError("CSV header must contain Index, X and at least one Y column")
 
     y_labels_raw = header[2:]
-    y_labels = [lbl.strip() if str(lbl).strip() else f"C{i+1}" for i, lbl in enumerate(y_labels_raw)]
+    y_labels = [
+        lbl.strip() if str(lbl).strip() else f"C{i + 1}" for i, lbl in enumerate(y_labels_raw)
+    ]
 
     x_list, y_rows = [], []
     for r in rows[4:]:
@@ -376,9 +439,12 @@ def load_csv_file(path: str) -> MeasurementData:
     channels = build_channel_from_csv(x_arr, y_arr, metadata, y_labels)
     channel_type = next(iter(channels.values()))["type"]
 
-    common_meta = build_common_metadata(path, channels[next(iter(channels))]["attrs"], channel_type, file_type="csv")
+    common_meta = build_common_metadata(
+        path, channels[next(iter(channels))]["attrs"], channel_type, file_type="csv"
+    )
 
     return MeasurementData(path, common_meta, channels)
+
 
 # ------------------------- Unified loader -------------------------
 def load_file(path: str) -> MeasurementData:
@@ -394,13 +460,15 @@ def load_file(path: str) -> MeasurementData:
         return load_sm4_file(path)
     raise ValueError(f"Unsupported file type: {ext}")
 
+
 # ------------------------- Convenience accessors -------------------------
 load = load_file
-load_sm4 = load_sm4_file
 load_csv = load_csv_file
+load_sm4_measurement = load_sm4_file
 
 if __name__ == "__main__":
     import argparse
+
     p = argparse.ArgumentParser(description="sm4_adapter test runner")
     p.add_argument("path", help="Path to .sm4 or .csv file to load")
     args = p.parse_args()

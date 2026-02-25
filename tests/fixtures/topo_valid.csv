@@ -1,0 +1,8 @@
+Attribute,RHK_Label,RHK_Xunits,RHK_Yunits,RHK_Zunits,RHK_SessionText
+Value,Topography,m,m,m,synthetic topo
+
+X [m],Y [m],Index,Z0,Z1
+0,0,0,1.0,2.0
+0,1,1,3.0,4.0
+1,0,2,5.0,6.0
+1,1,3,7.0,8.0

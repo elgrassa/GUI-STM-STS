@@ -1,7 +1,13 @@
 from PyQt6.QtWidgets import (
-    QToolButton, QCheckBox, QMenu, QSizePolicy, QWidget, QVBoxLayout
+    QToolButton,
+    QCheckBox,
+    QMenu,
+    QSizePolicy,
+    QWidget,
+    QVBoxLayout,
 )
 from gui.helpers.styles import Style
+
 
 class STSToolbar(QWidget):
     def __init__(self, parent=None):
@@ -71,12 +77,7 @@ class STSToolbar(QWidget):
         self.btn_reset.setText("🗑️")
 
         # ---------------------- Tooltips ----------------------
-        self.btn_save.setToolTip(
-            "<html>"
-            "Save chart image (.png) or<br>"
-            "export data (.csv)"
-            "</html>"
-        )
+        self.btn_save.setToolTip("<html>Save chart image (.png) or<br>export data (.csv)</html>")
 
         self.btn_normalize.setToolTip(
             "<html>"
@@ -101,31 +102,19 @@ class STSToolbar(QWidget):
         )
 
         self.btn_fit.setToolTip(
-            "<html>"
-            "Fit selected curve using Gaussian function<br>"
-            "<i>– Select one curve –</i>"
-            "</html>"
+            "<html>Fit selected curve using Gaussian function<br><i>– Select one curve –</i></html>"
         )
 
         self.btn_subtract.setToolTip(
-            "<html>"
-            "Subtract one selected curve from another<br>"
-            "<i>– Select two curves –</i>"
-            "</html>"
+            "<html>Subtract one selected curve from another<br><i>– Select two curves –</i></html>"
         )
 
         self.btn_divide.setToolTip(
-            "<html>"
-            "Divide one selected curve by another<br>"
-            "<i>– Select two curves –</i>"
-            "</html>"
+            "<html>Divide one selected curve by another<br><i>– Select two curves –</i></html>"
         )
 
         self.chk_swap_order.setToolTip(
-            "<html>"
-            "Swap the order of curves for "
-            "<i>Subtract</i>/<i>Divide</i> operations"
-            "</html>"
+            "<html>Swap the order of curves for <i>Subtract</i>/<i>Divide</i> operations</html>"
         )
 
         self.btn_average.setToolTip(
@@ -177,12 +166,21 @@ class STSToolbar(QWidget):
     def create_layout(self):
         layout, self.toolbar_frame = Style.create_toolbar_frame()
         # Adding buttons to toolbar
-        for item in [self.btn_save, Style.create_pixel_divider(), self.btn_normalize,
-                     self.btn_filter, Style.create_pixel_divider(), self.btn_subtract,
-                     self.btn_divide, self.chk_swap_order, Style.create_pixel_divider(),
-                     self.btn_average, self.btn_derivative, Style.create_pixel_divider(),
-                     self.btn_fit
-                     ]:
+        for item in [
+            self.btn_save,
+            Style.create_pixel_divider(),
+            self.btn_normalize,
+            self.btn_filter,
+            Style.create_pixel_divider(),
+            self.btn_subtract,
+            self.btn_divide,
+            self.chk_swap_order,
+            Style.create_pixel_divider(),
+            self.btn_average,
+            self.btn_derivative,
+            Style.create_pixel_divider(),
+            self.btn_fit,
+        ]:
             layout.addWidget(item)
 
         main_layout = QVBoxLayout(self)
@@ -194,9 +192,8 @@ class STSToolbar(QWidget):
         main_layout.addStretch(1)
 
         # ---------------------- Menu styling ----------------------
+
     def style_menu(self):
-        menu_list = [self.save_menu,
-                     self.normalize_menu,
-                     self.filter_menu]
+        menu_list = [self.save_menu, self.normalize_menu, self.filter_menu]
         for menu in menu_list:
             Style.style_menu(menu)

@@ -1,6 +1,14 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QLabel, QListWidget, QListWidgetItem,
-    QFileDialog, QMessageBox, QToolButton, QSplitter
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QFileDialog,
+    QMessageBox,
+    QToolButton,
+    QSplitter,
 )
 from PyQt6.QtCore import Qt, QTimer
 from gui.data_parser import DataManager
@@ -10,6 +18,7 @@ from gui.helpers.styles import Style, Utils, ConditionalDelegate
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -72,9 +81,11 @@ class MainWindow(QMainWindow):
         self.channel_list.setMouseTracking(True)
         self.channel_list.viewport().setCursor(Qt.CursorShape.ArrowCursor)
         self.channel_list.entered.connect(
-            lambda index: self.channel_list.viewport().setCursor(Qt.CursorShape.PointingHandCursor))
-        self.channel_list.viewport().leaveEvent = lambda event: self.channel_list.viewport().setCursor(
-            Qt.CursorShape.ArrowCursor)
+            lambda index: self.channel_list.viewport().setCursor(Qt.CursorShape.PointingHandCursor)
+        )
+        self.channel_list.viewport().leaveEvent = lambda event: (
+            self.channel_list.viewport().setCursor(Qt.CursorShape.ArrowCursor)
+        )
         self.channel_list.itemDoubleClicked.connect(self.open_correct_viewer)
 
         right_layout.addWidget(self.channel_list, 1)
@@ -103,10 +114,7 @@ class MainWindow(QMainWindow):
     # ------------------------- Open File -------------------------
     def open_file(self):
         filepath, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open File",
-            "",
-            "Data Files (*.sm4 *.csv);;All Files (*)"
+            self, "Open File", "", "Data Files (*.sm4 *.csv);;All Files (*)"
         )
 
         if not filepath:
@@ -157,7 +165,9 @@ class MainWindow(QMainWindow):
             elif ch_type == "topo":
                 self.open_topo(channel_name, channel_data)
             else:
-                QMessageBox.warning(self, "Unknown channel type", f"Unhandled channel type: {ch_type}")
+                QMessageBox.warning(
+                    self, "Unknown channel type", f"Unhandled channel type: {ch_type}"
+                )
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to open viewer:\n{e}")
 
@@ -171,19 +181,19 @@ class MainWindow(QMainWindow):
             if t == "current" and current_ch is None:
                 current_ch = ch
 
-        filename = channel_data.get("attrs", {}).get("CSV filename") or channel_data.get("attrs", {}).get("File")
+        filename = channel_data.get("attrs", {}).get("CSV filename") or channel_data.get(
+            "attrs", {}
+        ).get("File")
 
-        viewer = STSViewer(
-            channel_data=channel_data,
-            current_channel=current_ch,
-            parent=None
-        )
+        viewer = STSViewer(channel_data=channel_data, current_channel=current_ch, parent=None)
         viewer.setWindowTitle(f"STS Viewer ({channel_name}) - {filename}")
         viewer.show()
         self.viewer_windows.append(viewer)
 
     def open_topo(self, channel_name: str, channel_data: dict):
-        filename = channel_data.get("attrs", {}).get("CSV filename") or channel_data.get("attrs", {}).get("File")
+        filename = channel_data.get("attrs", {}).get("CSV filename") or channel_data.get(
+            "attrs", {}
+        ).get("File")
         viewer = TopoViewer(channel_data, parent=None)
         viewer.setWindowTitle(f"Topo Viewer ({channel_name}) – {filename}")
         viewer.show()
@@ -214,7 +224,7 @@ class MainWindow(QMainWindow):
             self.table_metadata.columnWidth(1),
             max_height=800,
             overhead=16,
-            document_margin=0
+            document_margin=0,
         )
 
         browser.setMinimumHeight(height)
