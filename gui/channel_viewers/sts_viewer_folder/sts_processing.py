@@ -1,6 +1,5 @@
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtCore import Qt
-from scipy.signal import savgol_filter, wiener
 import numpy as np
 import logging
 
@@ -189,6 +188,8 @@ class STSOperations:
 
     @staticmethod
     def savgol_filter(all_curves, indices, window_length, polyorder):
+        from scipy.signal import savgol_filter
+
         return STSOperations.apply_filter_to_curves(
             all_curves,
             indices,
@@ -202,6 +203,8 @@ class STSOperations:
 
     @staticmethod
     def wiener_filter(all_curves, indices, mysize):
+        from scipy.signal import wiener
+
         return STSOperations.apply_filter_to_curves(
             all_curves,
             indices,

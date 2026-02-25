@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QRegularExpressionValidator, QCursor
 from PyQt6.QtCore import Qt, QRegularExpression
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import numpy as np
 import os
 import csv
@@ -850,6 +850,9 @@ class STSViewer(QMainWindow):
 
         # Clear plotted curves
         self.plotter.clear_plot()
+
+    def show_error(self, message: str, title: str = "Error") -> None:
+        QMessageBox.warning(self, title, str(message))
 
     #  --- Helpers tools ---
     def get_single_selected_curve(self):
