@@ -1,0 +1,6 @@
+Attribute,RHK_Label,RHK_Xunits,RHK_Yunits,RHK_Zunits
+Value,Topography,m,m,m
+
+X [m],Y [m],Index
+0,0,0
+1,1,1

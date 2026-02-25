@@ -1,0 +1,8 @@
+Attribute,RHK_Label,RHK_Bias,RHK_Xscale,RHK_Xunits,RHK_Zunits,RHK_SessionText
+Value,dI/dU,-0.2,0.1,V,A,synthetic sts
+
+Index,Bias [V],Current,dIdV
+0,-0.2,1e-9,2e-9
+1,-0.1,2e-9,4e-9
+2,0.0,0.0,6e-9
+3,0.1,4e-9,8e-9

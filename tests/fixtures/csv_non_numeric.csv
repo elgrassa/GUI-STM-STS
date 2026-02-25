@@ -1,0 +1,7 @@
+Attribute,RHK_Label,RHK_Bias,RHK_Xscale,RHK_Xunits,RHK_Zunits
+Value,dI/dU,-0.2,0.1,V,A
+
+Index,Bias [V],Current,dIdV
+0,-0.2,foo,bar
+1,-0.1,baz,qux
+2,0.0,spam,eggs

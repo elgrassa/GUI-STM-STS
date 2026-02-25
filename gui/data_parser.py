@@ -2,10 +2,19 @@ import os
 import csv
 import spym
 import numpy as np
-from typing import Optional, Dict, Any
+from collections.abc import Mapping
+from typing import Optional, Dict, Any, Callable
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class ParseError(ValueError):
+    """Raised when measurement data parsing fails for a known invalid format."""
+
+
+# Soft guard for very large SM4 channels (can be overridden via env in constrained environments).
+MAX_SM4_CHANNEL_POINTS = int(os.getenv("STM_STS_MAX_SM4_POINTS", "5000000"))
 
 class MeasurementData:
     def __init__(self, path: str, metadata: dict, channels: dict):
@@ -153,9 +162,29 @@ def build_channels_from_sm4(spym_data) -> dict:
     channels = {}
 
     for var_name, da in spym_data.data_vars.items():
-        title = (da.attrs.get("long_name", var_name)).strip()
-        ch_type = infer_channel_type(da.attrs)
-        data_arr = np.asarray(da.data)
+        if not hasattr(da, "data"):
+            raise ParseError(f"Invalid SM4 structure: channel '{var_name}' is missing data.")
+        if not hasattr(da, "attrs"):
+            raise ParseError(f"Invalid SM4 structure: channel '{var_name}' is missing attrs.")
+
+        attrs = da.attrs
+        if not isinstance(attrs, Mapping):
+            try:
+                attrs = dict(attrs)
+            except Exception as exc:
+                raise ParseError(
+                    f"Invalid SM4 structure: channel '{var_name}' attrs are not mapping-like."
+                ) from exc
+
+        attrs_dict = dict(attrs)
+        title = str(attrs_dict.get("long_name", var_name)).strip()
+        ch_type = infer_channel_type(attrs_dict)
+        data_arr = np.asarray(da.data, dtype=float)
+
+        if MAX_SM4_CHANNEL_POINTS > 0 and data_arr.size > MAX_SM4_CHANNEL_POINTS:
+            raise ParseError(
+                f"SM4 channel '{var_name}' exceeds size limit ({MAX_SM4_CHANNEL_POINTS} points)."
+            )
 
         if data_arr.ndim == 1:  # 2D array expected
             data_arr = data_arr.reshape(-1, 1)
@@ -163,7 +192,7 @@ def build_channels_from_sm4(spym_data) -> dict:
             "type": ch_type,
             "title": title,
             "data": data_arr,
-            "attrs": dict(da.attrs),
+            "attrs": attrs_dict,
             "file_type": "sm4",
         }
     return channels
@@ -226,12 +255,38 @@ def build_channel_from_csv(
     }
 
 # ------------------------- File loaders -------------------------
-def load_sm4_file(filepath: str) -> MeasurementData:
-    data = spym.load(filepath)
+def load_sm4(filepath: str):
+    """Default SM4 reader seam, split out for dependency injection in tests."""
+    return spym.load(filepath)
+
+
+def _validate_sm4_structure(sm4_data: Any) -> None:
+    if sm4_data is None or not hasattr(sm4_data, "data_vars"):
+        raise ParseError("Invalid SM4 structure: missing data_vars.")
+
+    data_vars = getattr(sm4_data, "data_vars")
+    if data_vars is None or len(data_vars) == 0:
+        raise ParseError("Invalid SM4 structure: no channels found.")
+
+
+def load_sm4_file(
+    filepath: str,
+    sm4_loader: Optional[Callable[[str], Any]] = None,
+) -> MeasurementData:
+    loader = sm4_loader or load_sm4
+    try:
+        data = loader(filepath)
+    except Exception as exc:
+        raise ParseError(f"Failed to load SM4 file: {exc}") from exc
+
+    _validate_sm4_structure(data)
     channels = build_channels_from_sm4(data)
 
     topo_var = next((k for k, v in channels.items() if is_metric_channel(v)), None)
-    first_var = next(iter(data.data_vars.keys()))
+    try:
+        first_var = next(iter(data.data_vars.keys()))
+    except Exception as exc:
+        raise ParseError("Invalid SM4 structure: unable to determine first channel.") from exc
 
     if topo_var:
         topo_attrs = channels[topo_var]["attrs"]
@@ -396,8 +451,8 @@ def load_file(path: str) -> MeasurementData:
 
 # ------------------------- Convenience accessors -------------------------
 load = load_file
-load_sm4 = load_sm4_file
 load_csv = load_csv_file
+load_sm4_measurement = load_sm4_file
 
 if __name__ == "__main__":
     import argparse
