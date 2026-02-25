@@ -1,5 +1,3 @@
-from PyQt6.QtWidgets import QMessageBox
-from PyQt6.QtCore import Qt
 import numpy as np
 import logging
 
@@ -36,11 +34,12 @@ class STSPlotter:
         # --- Average mode ---
         if average:
             if len(indices) < 2:
-                QMessageBox.warning(
-                    self.viewer,
-                    "Invalid Selection",
-                    "Please select two or more curves.",
-                )
+                if hasattr(self.viewer, "show_error"):
+                    self.viewer.show_error(
+                        "Please select two or more curves.", title="Invalid Selection"
+                    )
+                else:
+                    logger.warning("Invalid Selection: Please select two or more curves.")
                 return
 
             xs, ys = [], []
@@ -94,7 +93,8 @@ class STSPlotter:
             # Auto-check new curve
             item = self.viewer.curve_list.item(last_idx)
             if item:
-                item.setCheckState(Qt.CheckState.Checked)
+                # Int value `2` corresponds to Qt.CheckState.Checked.
+                item.setCheckState(2)
 
             return
 
